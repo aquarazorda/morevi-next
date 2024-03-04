@@ -1,12 +1,13 @@
 import { type Config } from "drizzle-kit";
-
 import { env } from "~/env";
 
 export default {
   schema: "./src/server/db/schema.ts",
-  driver: "mysql2",
+  out: "./migrations",
+  driver: "turso",
+  breakpoints: true,
   dbCredentials: {
-    uri: env.DATABASE_URL,
+    url: env.DATABASE_URL,
+    authToken: env.DATABASE_AUTH_TOKEN,
   },
-  tablesFilter: ["morevi-next_*"],
 } satisfies Config;
