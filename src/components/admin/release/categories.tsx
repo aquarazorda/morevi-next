@@ -46,8 +46,8 @@ export default function CategorySelector({
       render={({ field }) => (
         <FormItem>
           <FormLabel>Categories</FormLabel>
-          <ScrollArea className="h-60 w-full rounded-md border">
-            <div className="flex flex-wrap gap-1 overflow-y-auto p-2">
+          <ScrollArea className="h-60 w-full">
+            <div className="flex flex-wrap gap-1 overflow-y-auto">
               {data.map(({ name, count, id }) => (
                 <Toggle
                   key={id}

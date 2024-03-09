@@ -4,11 +4,16 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { usePathname, useRouter } from "next/navigation";
 import { type z } from "zod";
 import { DataTable } from "~/components/ui/data-table";
-import { getReleaseTitle } from "~/lib/utils";
-import { type basicInformationSchema } from "~/server/schemas/discogs/folders";
+import { getNotesAsSearchParams, getReleaseTitle } from "~/lib/utils";
+import {
+  type noteSchema,
+  type basicInformationSchema,
+} from "~/server/schemas/discogs/folders";
 
 export const releasesTableColumns: ColumnDef<
-  z.infer<typeof basicInformationSchema>
+  z.infer<typeof basicInformationSchema> & {
+    notes: z.infer<typeof noteSchema>[];
+  }
 >[] = [
   {
     header: "Thumbnail",
@@ -38,7 +43,11 @@ export const releasesTableColumns: ColumnDef<
 export const ReleasesTable = ({
   data,
 }: {
-  data: z.infer<typeof basicInformationSchema>[];
+  data: Array<
+    z.infer<typeof basicInformationSchema> & {
+      notes: z.infer<typeof noteSchema>[];
+    }
+  >;
 }) => {
   const pathname = usePathname();
   const router = useRouter();
@@ -47,7 +56,9 @@ export const ReleasesTable = ({
     <DataTable
       data={data}
       columns={releasesTableColumns}
-      onRowClick={({ id }) => router.push(pathname + "/" + id)}
+      onRowClick={({ id, notes }) =>
+        router.push(pathname + "/" + id + getNotesAsSearchParams(notes))
+      }
     />
   );
 };

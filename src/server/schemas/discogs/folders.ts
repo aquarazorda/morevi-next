@@ -10,6 +10,11 @@ export const foldersResponseSchema = z.object({
   folders: z.array(discogsFolderSchema),
 });
 
+export const noteSchema = z.object({
+  field_id: z.number(),
+  value: z.string(),
+});
+
 export const basicInformationSchema = z.object({
   id: z.number(),
   title: z.string(),
@@ -43,7 +48,11 @@ export const folderReleasesSchema = z.object({
     z
       .object({
         basic_information: basicInformationSchema,
+        notes: z.array(noteSchema).optional(),
       })
-      .transform(({ basic_information }) => basic_information),
+      .transform(({ basic_information, notes }) => ({
+        ...basic_information,
+        notes,
+      })),
   ),
 });
