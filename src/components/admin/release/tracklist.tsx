@@ -26,6 +26,7 @@ export default function Tracklist() {
               <Fragment key={field.id}>
                 <Input
                   className="col-span-1"
+                  placeholder="A1"
                   {...register(`tracks.${idx}.position`)}
                 />
                 <Input
@@ -34,10 +35,12 @@ export default function Tracklist() {
                 />
                 <Input
                   className="col-span-1"
+                  placeholder="00:00"
                   {...register(`tracks.${idx}.duration`)}
                 />
                 <Input
                   className="col-span-3"
+                  placeholder="https://youtube.com/"
                   {...register(`tracks.${idx}.link`)}
                 />
                 <Button variant="secondary" type="button" asChild>

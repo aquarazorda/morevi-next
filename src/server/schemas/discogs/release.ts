@@ -9,19 +9,21 @@ export const addReleaseSchema = z.object({
   artists: z.array(z.string()),
   labelId: z.string(),
   year: z.coerce.number(),
-  catno: z.string(),
-  tracks: z.array(
-    z.object({
-      position: z.string(),
-      title: z.string(),
-      duration: z.string(),
-      link: z.string(),
-    }),
-  ),
+  catno: z.string().optional(),
+  tracks: z
+    .array(
+      z.object({
+        position: z.string(),
+        title: z.string(),
+        duration: z.string().optional(),
+        link: z.string().optional(),
+      }),
+    )
+    .optional(),
   stock: z.coerce.number(),
   condition: z.enum(recordCondition),
   status: z.enum(recordStatus),
-  price: z.string(),
+  price: z.string().optional(),
   category: z.array(z.number()),
 });
 

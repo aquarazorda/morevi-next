@@ -32,6 +32,7 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 import { recordCondition, recordStatus } from "~/server/db/schema/record";
 import { Button } from "~/components/ui/button";
 import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 
 export default function AddReleaseForm({
   data: {
@@ -51,17 +52,15 @@ export default function AddReleaseForm({
   categoriesPromise: Promise<Categories>;
 }) {
   const search = useSearchParams();
-
-  const form = useForm<z.infer<typeof addReleaseSchema>>({
-    resolver: zodResolver(addReleaseSchema),
-    defaultValues: {
+  const defaultValues = useMemo(
+    () => ({
       id: String(id),
       image: images?.[0]?.uri,
       title: getReleaseTitle(title, artists),
       labelId: labels?.[0]?.id ? String(labels[0].id) : "",
       catno: labels?.[0]?.catno ?? "",
       category: [],
-      status: "active",
+      status: "active" as const,
       price: search.get("price") ?? "0.00",
       stock: search.get("quantity") ? Number(search.get("quantity")) : 1,
       condition:
@@ -76,7 +75,13 @@ export default function AddReleaseForm({
               title.toLowerCase().includes(track.title.toLowerCase()),
             )?.uri ?? "",
         })) ?? [],
-    },
+    }),
+    [],
+  );
+
+  const form = useForm<z.infer<typeof addReleaseSchema>>({
+    resolver: zodResolver(addReleaseSchema),
+    defaultValues,
   });
 
   return (
@@ -246,7 +251,11 @@ export default function AddReleaseForm({
             </div>
           </ScrollArea>
           <div className="flex w-full justify-end gap-2 p-4">
-            <Button variant="destructive" type="button">
+            <Button
+              variant="destructive"
+              type="button"
+              onClick={() => form.reset(defaultValues)}
+            >
               Reset
             </Button>
             <Button>Save</Button>

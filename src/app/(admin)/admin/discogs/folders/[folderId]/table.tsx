@@ -4,7 +4,11 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { usePathname, useRouter } from "next/navigation";
 import { type z } from "zod";
 import { DataTable } from "~/components/ui/data-table";
-import { getNotesAsSearchParams, getReleaseTitle } from "~/lib/utils";
+import {
+  getNotesAsSearchParams,
+  getReleaseTitle,
+  removeNumberInParentheses,
+} from "~/lib/utils";
 import {
   type noteSchema,
   type basicInformationSchema,
@@ -36,7 +40,11 @@ export const releasesTableColumns: ColumnDef<
   },
   {
     header: "Label",
-    accessorFn: ({ labels }) => labels[0]?.name + " (" + labels[0]?.catno + ")",
+    accessorFn: ({ labels }) =>
+      removeNumberInParentheses(labels[0]?.name) +
+      " (" +
+      labels[0]?.catno +
+      ")",
   },
 ];
 

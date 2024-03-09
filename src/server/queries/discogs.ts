@@ -15,7 +15,7 @@ export const getFolders = () =>
 
 export const getReleases = (folderId: string) =>
   getDiscogs(
-    `${foldersPath}/${folderId}/releases?sort=added&sort_order=desc`,
+    `${foldersPath}/${folderId}/releases?sort=added&sort_order=desc&per_page=100`,
     folderReleasesSchema,
   );
 
@@ -35,6 +35,7 @@ export const getDiscogs = <T extends ZodRawShape>(
     },
   })
     .then(async (res) => {
+      // TODO maybe there's multiple pages
       return schema.parse(await res.json());
     })
     .catch((e) => {
