@@ -1,6 +1,10 @@
-import { type ZodSchema } from "zod";
+import type { ZodObject, ZodRawShape } from "zod";
 import { env } from "~/env";
-import { foldersResponseSchema } from "../schemas/discogs/folders";
+import {
+  foldersResponseSchema,
+  folderReleasesSchema,
+} from "../schemas/discogs/folders";
+import { releaseSchema } from "../schemas/discogs/release";
 
 export const foldersPath = "/users/MoreviTBS/collection/folders";
 
@@ -9,7 +13,19 @@ export const getFolders = () =>
     (res) => res?.folders ?? [],
   );
 
-export const getDiscogs = <T>(path: string, schema: ZodSchema<T>) =>
+export const getReleases = (folderId: string) =>
+  getDiscogs(
+    `${foldersPath}/${folderId}/releases?sort=added&sort_order=desc`,
+    folderReleasesSchema,
+  );
+
+export const getRelease = (releaseId: string) =>
+  getDiscogs(`/releases/${releaseId}`, releaseSchema);
+
+export const getDiscogs = <T extends ZodRawShape>(
+  path: string,
+  schema: ZodObject<T>,
+) =>
   fetch("https://api.discogs.com" + path, {
     headers: {
       Authorization: `Discogs token=${env.DISCOGS_TOKEN}`,
@@ -21,6 +37,7 @@ export const getDiscogs = <T>(path: string, schema: ZodSchema<T>) =>
     .then(async (res) => {
       return schema.parse(await res.json());
     })
-    .catch(() => {
+    .catch((e) => {
+      console.log(e);
       return undefined;
     });

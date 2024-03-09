@@ -16,7 +16,12 @@ export default function AdminNavbarLinkButton({ href, icon, title }: Props) {
 
   return (
     <Button
-      variant={path === href ? "secondary" : "ghost"}
+      variant={
+        (href !== "/admin" && path.startsWith(href)) ||
+        (href === "/admin" && path === "/admin")
+          ? "secondary"
+          : "ghost"
+      }
       className="w-full justify-start"
       key={title}
       asChild
