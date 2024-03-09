@@ -5,11 +5,11 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
-  type ColumnFiltersState,
   getPaginationRowModel,
+  type FilterFn,
 } from "@tanstack/react-table";
 import { useState } from "react";
-
+import { rankItem } from "@tanstack/match-sorter-utils";
 import {
   Table,
   TableBody,
@@ -28,21 +28,41 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void;
 }
 
+declare module "@tanstack/table-core" {
+  interface FilterFns {
+    fuzzy: FilterFn<unknown>;
+  }
+}
+
+const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+  const itemRank = rankItem(row.getValue(columnId), value as string);
+
+  addMeta({
+    itemRank,
+  });
+
+  return itemRank.passed;
+};
+
 export function DataTable<TData, TValue>({
   columns,
   data,
   onRowClick,
 }: DataTableProps<TData, TValue>) {
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getPaginationRowModel: getPaginationRowModel(),
+    globalFilterFn: fuzzyFilter,
+    filterFns: {
+      fuzzy: fuzzyFilter,
+    },
     state: {
-      columnFilters,
+      globalFilter,
     },
   });
 
@@ -51,10 +71,8 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center py-4">
         <Input
           placeholder="Search..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
-          }
+          value={globalFilter}
+          onChange={(event) => table.setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
         <div className="ml-auto flex items-center justify-end space-x-2 py-4">
@@ -108,7 +126,7 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className={cn(onRowClick && "cursor-pointer")}
-                  onClick={() => onRowClick?.(row.original)}
+                  onClick={() => onRowClick?.(row.original as TData)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

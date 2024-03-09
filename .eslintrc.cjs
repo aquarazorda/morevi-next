@@ -13,6 +13,7 @@ const config = {
   rules: {
     "@next/next/no-img-element": "off",
     "react-hooks/exhaustive-deps": "off",
+    "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/array-type": "off",
     "@typescript-eslint/consistent-type-definitions": "off",
     "@typescript-eslint/consistent-type-imports": [
