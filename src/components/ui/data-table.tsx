@@ -6,6 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
   getPaginationRowModel,
+  getFilteredRowModel,
   type FilterFn,
 } from "@tanstack/react-table";
 import { useState } from "react";
@@ -57,6 +58,7 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     getPaginationRowModel: getPaginationRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     globalFilterFn: fuzzyFilter,
     filterFns: {
       fuzzy: fuzzyFilter,
