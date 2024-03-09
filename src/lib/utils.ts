@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { type z } from "zod";
 import { type noteSchema } from "~/server/schemas/discogs/folders";
 import { match } from "ts-pattern";
+import { toast } from "sonner";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -19,6 +20,15 @@ export function removeNumberInParentheses(str?: string) {
 export function getReleaseTitle(title: string, artists: { name: string }[]) {
   // we need to replace all "(n)" with empty string in artist name
   return `${artists.map((artist) => removeNumberInParentheses(artist.name)).join(", ")} - ${title}`;
+}
+
+export async function copyToClipboard(text: string) {
+  try {
+    await window.navigator.clipboard.writeText(text);
+    toast.info("Copied to clipboard");
+  } catch (_) {
+    toast.error("Failed to copy to clipboard");
+  }
 }
 
 const parsePriceAndQuantity = (

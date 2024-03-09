@@ -1,9 +1,11 @@
+import { CopyIcon } from "lucide-react";
 import { Fragment } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 import { Button } from "~/components/ui/button";
 import { FormField, FormItem, FormLabel } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { copyToClipboard } from "~/lib/utils";
 import type { addReleaseSchema } from "~/server/schemas/discogs/release";
 
 export default function Tracklist() {
@@ -38,11 +40,22 @@ export default function Tracklist() {
                   placeholder="00:00"
                   {...register(`tracks.${idx}.duration`)}
                 />
-                <Input
-                  className="col-span-3"
-                  placeholder="https://youtube.com/"
-                  {...register(`tracks.${idx}.link`)}
-                />
+                <div className="relative col-span-3 flex space-x-2">
+                  <Input
+                    placeholder="https://youtube.com/"
+                    {...register(`tracks.${idx}.link`)}
+                  />
+                  {field.link && (
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="absolute right-1 top-1 size-8"
+                      onClick={() => copyToClipboard(field.link!)}
+                    >
+                      <CopyIcon className="size-4" />
+                    </Button>
+                  )}
+                </div>
                 <Button variant="secondary" type="button" asChild>
                   <a href={field.link} target="_blank">
                     Play

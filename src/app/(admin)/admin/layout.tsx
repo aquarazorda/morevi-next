@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Sidebar } from "~/components/admin/sidebar";
+import { Toaster } from "~/components/ui/sonner";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -8,6 +9,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <Sidebar />
       </nav>
       <main className="container col-span-7 px-8 py-4">{children}</main>
+      <Toaster position="top-right" />
     </div>
   );
 }
