@@ -7,7 +7,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <nav className="sticky col-span-1 h-[100dvh]">
         <Sidebar />
       </nav>
-      <main className="container col-span-5">{children}</main>
+      <main className="container col-span-5 px-8 py-4">{children}</main>
     </div>
   );
 }
