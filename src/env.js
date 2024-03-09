@@ -10,6 +10,9 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     DATABASE_AUTH_TOKEN: z.string(),
     DISCOGS_TOKEN: z.string(),
+    WP_HOST: z.string().url(),
+    WP_KEY: z.string(),
+    WP_SECRET: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -32,6 +35,9 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     DATABASE_AUTH_TOKEN: process.env.DATABASE_AUTH_TOKEN,
     DISCOGS_TOKEN: process.env.DISCOGS_TOKEN,
+    WP_HOST: process.env.WP_HOST,
+    WP_KEY: process.env.WP_KEY,
+    WP_SECRET: process.env.WP_SECRET,
     NODE_ENV: process.env.NODE_ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },

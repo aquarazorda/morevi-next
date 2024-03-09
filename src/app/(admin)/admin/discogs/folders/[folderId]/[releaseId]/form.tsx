@@ -6,7 +6,6 @@ import ImageSelector from "~/components/admin/release/image-selector";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,11 +25,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import CategorySelector from "~/components/admin/release/categories";
+import type { Categories } from "~/server/queries/woocommerce";
+import Tracklist from "~/components/admin/release/tracklist";
 
 export default function AddReleaseForm({
-  data: { id, images, title, artists, labels, ...rest },
+  data: {
+    id,
+    images,
+    title,
+    artists,
+    labels,
+    styles,
+    genres,
+    tracklist,
+    videos,
+    ...rest
+  },
+  categoriesPromise,
 }: {
   data: z.infer<typeof releaseSchema>;
+  categoriesPromise: Promise<Categories>;
 }) {
   const form = useForm<z.infer<typeof addReleaseSchema>>({
     resolver: zodResolver(addReleaseSchema),
@@ -40,6 +55,15 @@ export default function AddReleaseForm({
       title: getReleaseTitle(title, artists),
       labelId: labels?.[0]?.id ? String(labels[0].id) : "",
       catno: labels?.[0]?.catno ?? "",
+      category: [],
+      tracks:
+        tracklist?.map((track) => ({
+          ...track,
+          link:
+            videos?.find(({ title }) =>
+              title.toLowerCase().includes(track.title.toLowerCase()),
+            )?.uri ?? "",
+        })) ?? [],
       ...rest,
     },
   });
@@ -118,6 +142,11 @@ export default function AddReleaseForm({
                 )}
               />
             </div>
+            <CategorySelector
+              categoriesPromise={categoriesPromise}
+              categories={genres?.concat(styles ?? [])}
+            />
+            <Tracklist />
           </div>
         </div>
       </form>

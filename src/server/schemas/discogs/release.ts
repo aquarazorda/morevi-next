@@ -10,15 +10,19 @@ export const addReleaseSchema = z.object({
   labelId: z.string(),
   year: z.coerce.number(),
   catno: z.string(),
-  trackPosition: z.array(z.string()),
-  trackName: z.array(z.string()),
-  trackDuration: z.array(z.string()),
-  trackLink: z.array(z.string()),
+  tracks: z.array(
+    z.object({
+      position: z.string(),
+      title: z.string(),
+      duration: z.string(),
+      link: z.string(),
+    }),
+  ),
   stock: z.coerce.number(),
   condition: z.enum(recordCondition),
   status: z.enum(recordStatus),
   price: z.string(),
-  category: z.array(z.string()),
+  category: z.array(z.number()),
 });
 
 export const releaseImages = z
@@ -48,21 +52,22 @@ export const releaseSchema = z.object({
   ),
   genres: z.array(z.string()).optional(),
   styles: z.array(z.string()).optional(),
-  tracklist: z.array(
-    z
-      .object({
+  tracklist: z
+    .array(
+      z.object({
         position: z.string(),
         title: z.string(),
-      })
-      .optional(),
-  ),
+        duration: z.string().optional(),
+      }),
+    )
+    .optional(),
   images: releaseImages,
-  videos: z.array(
-    z
-      .object({
+  videos: z
+    .array(
+      z.object({
         uri: z.string().url(),
         title: z.string(),
-      })
-      .optional(),
-  ),
+      }),
+    )
+    .optional(),
 });
