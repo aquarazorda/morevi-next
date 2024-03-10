@@ -16,7 +16,7 @@ import {
 
 export const releasesTableColumns: ColumnDef<
   z.infer<typeof basicInformationSchema> & {
-    notes: z.infer<typeof noteSchema>[];
+    notes?: z.infer<typeof noteSchema>[];
   }
 >[] = [
   {
@@ -53,7 +53,7 @@ export const ReleasesTable = ({
 }: {
   data: Array<
     z.infer<typeof basicInformationSchema> & {
-      notes: z.infer<typeof noteSchema>[];
+      notes?: z.infer<typeof noteSchema>[];
     }
   >;
 }) => {
