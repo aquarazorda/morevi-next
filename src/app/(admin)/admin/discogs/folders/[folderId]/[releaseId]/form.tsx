@@ -281,6 +281,11 @@ export default function AddReleaseForm({
             </div>
           </ScrollArea>
           <div className="flex w-full justify-end gap-2 p-4">
+            <Button variant="outline">
+              <a href={`https://www.discogs.com/release/${id}`} target="_blank">
+                Preview on discogs
+              </a>
+            </Button>
             <Button
               variant="destructive"
               type="button"

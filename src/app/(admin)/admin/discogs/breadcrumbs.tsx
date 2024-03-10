@@ -27,7 +27,7 @@ export default function DiscogsBreadCrumbs() {
             </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
-        {pathParts.map((path) => (
+        {pathParts.map((path, i) => (
           <Fragment key={path}>
             <BreadcrumbSeparator />
             {pathname.endsWith(path) ? (
@@ -36,7 +36,12 @@ export default function DiscogsBreadCrumbs() {
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
                   <Link
-                    href={pathname.split(path)[0] + path ?? "/admin"}
+                    href={
+                      pathname.split(path)[0] +
+                        path +
+                        (pathParts[i + 1] ? `/#${pathParts[i + 1]}` : "") ??
+                      "/admin"
+                    }
                     prefetch={false}
                   >
                     {capitalize(path)}

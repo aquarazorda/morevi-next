@@ -6,10 +6,15 @@ import { getWcCategories } from "~/server/queries/woocommerce";
 export default async function FolderReleasePage({
   params,
 }: {
-  params: { folderId: string; releaseId: string };
+  params: { folderId?: string; releaseId: string };
 }) {
   const data = await getRelease(params.releaseId);
-  if (!data) redirect("/admin/discogs/folders/" + params.folderId);
+  if (!data)
+    redirect(
+      params.folderId
+        ? "/admin/discogs/folders/" + params.folderId
+        : "/admin/discogs/add",
+    );
   const categoriesPromise = getWcCategories();
 
   return <AddReleaseForm data={data} categoriesPromise={categoriesPromise} />;

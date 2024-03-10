@@ -1,12 +1,15 @@
-import type { ZodObject, ZodRawShape } from "zod";
+"use server";
+
+import { type ZodObject, type ZodRawShape } from "zod";
 import { env } from "~/env";
 import {
   foldersResponseSchema,
   folderReleasesSchema,
 } from "../schemas/discogs/folders";
 import { releaseSchema } from "../schemas/discogs/release";
+import { discogsSearchResultsSchema } from "../schemas/discogs/search";
 
-export const foldersPath = "/users/MoreviTBS/collection/folders";
+const foldersPath = "/users/MoreviTBS/collection/folders";
 
 export const getFolders = () =>
   getDiscogs(foldersPath, foldersResponseSchema).then(
@@ -21,6 +24,12 @@ export const getReleases = (folderId: string) =>
 
 export const getRelease = (releaseId: string) =>
   getDiscogs(`/releases/${releaseId}`, releaseSchema);
+
+export const getDiscogsSearch = (query: string) =>
+  getDiscogs(
+    `/database/search?type=release&per_page=50&query=${query}`,
+    discogsSearchResultsSchema,
+  );
 
 export const getDiscogs = <T extends ZodRawShape>(
   path: string,
@@ -39,6 +48,6 @@ export const getDiscogs = <T extends ZodRawShape>(
       return schema.parse(await res.json());
     })
     .catch((e) => {
-      console.log(e);
+      console.log(JSON.stringify(e));
       return undefined;
     });
