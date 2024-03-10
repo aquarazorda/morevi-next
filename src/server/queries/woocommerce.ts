@@ -1,7 +1,7 @@
 "use server";
 
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
-import { unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { z } from "zod";
 import { env } from "~/env";
 import { addReleaseSchema } from "../schemas/discogs/release";
@@ -9,6 +9,7 @@ import { type recordCondition } from "../db/schema/record";
 import { match } from "ts-pattern";
 import { chain, tryCatch } from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
+import CACHE_TAG from "./cache-tags";
 
 const wcApi = new WooCommerceRestApi({
   url: env.WP_HOST,
@@ -49,7 +50,7 @@ export const getWcCategories = unstable_cache(
         return [] as Categories;
       }),
   ["getWcCategories"],
-  { tags: ["wc-categories"], revalidate: 600 },
+  { tags: [CACHE_TAG.WC_CATEGORIES], revalidate: 600 },
 );
 
 const generateTracklist = (
@@ -122,9 +123,10 @@ export const addProductToWc = (product: z.infer<typeof addReleaseSchema>) =>
     chain((body) =>
       tryCatch(
         () =>
-          wcApi
-            .post("products", body)
-            .then(() => "Product added successfully."),
+          wcApi.post("products", body).then(() => {
+            revalidateTag(CACHE_TAG.WC_CATEGORIES);
+            return "Product added successfully.";
+          }),
         () => "Error adding product to WooCommerce. Please try again.",
       ),
     ),
