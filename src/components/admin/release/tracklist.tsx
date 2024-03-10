@@ -3,7 +3,12 @@ import { Fragment } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 import { Button } from "~/components/ui/button";
-import { FormField, FormItem, FormLabel } from "~/components/ui/form";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { copyToClipboard } from "~/lib/utils";
 import type { addReleaseSchema } from "~/server/schemas/discogs/release";
@@ -71,6 +76,7 @@ export default function Tracklist() {
               </Fragment>
             ))}
           </div>
+          <FormMessage />
           <Button
             variant="outline"
             className="w-full"

@@ -6,10 +6,11 @@ export const addReleaseSchema = z.object({
   id: z.string(),
   title: z.string(),
   image: z.string().url(),
-  artists: z.array(z.string()),
+  artists: z.array(z.string()).optional(),
   labelId: z.string(),
   year: z.coerce.number(),
   catno: z.string().optional(),
+  label: z.string().optional(),
   tracks: z
     .array(
       z.object({
@@ -27,11 +28,27 @@ export const addReleaseSchema = z.object({
   category: z.array(z.number()),
 });
 
+export const discogsLabelSchema = z.object({
+  id: z.number(),
+  name: z.string().transform((name) => removeNumberInParentheses(name)!),
+  catno: z.string().optional(),
+});
+
 export const releaseImages = z
   .array(
     z.object({
       type: z.enum(["primary", "secondary"]),
       uri: z.string().url(),
+    }),
+  )
+  .optional();
+
+export const discogsTracklistSchema = z
+  .array(
+    z.object({
+      position: z.string(),
+      title: z.string(),
+      duration: z.string().optional(),
     }),
   )
   .optional();
@@ -42,27 +59,13 @@ export const releaseSchema = z.object({
   title: z.string(),
   artists: z.array(
     z.object({
-      name: z.string().transform((name) => removeNumberInParentheses(name)),
+      name: z.string().transform((name) => removeNumberInParentheses(name)!),
     }),
   ),
-  labels: z.array(
-    z.object({
-      id: z.number(),
-      name: z.string().transform((name) => removeNumberInParentheses(name)),
-      catno: z.string().optional(),
-    }),
-  ),
+  labels: z.array(discogsLabelSchema),
   genres: z.array(z.string()).optional(),
   styles: z.array(z.string()).optional(),
-  tracklist: z
-    .array(
-      z.object({
-        position: z.string(),
-        title: z.string(),
-        duration: z.string().optional(),
-      }),
-    )
-    .optional(),
+  tracklist: discogsTracklistSchema,
   images: releaseImages,
   videos: z
     .array(

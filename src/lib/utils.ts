@@ -13,7 +13,7 @@ export function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function removeNumberInParentheses(str?: string) {
+export function removeNumberInParentheses<T extends string>(str?: T) {
   return str?.replace(/\(?\d+\)?/g, "");
 }
 
@@ -60,7 +60,7 @@ export const getNotesAsSearchParams = (
       .with(1, () => search.append("condition", note.value))
       .with(3, () => {
         const { price, quantity } = parsePriceAndQuantity(note.value);
-        if (price) search.append("price", String(price));
+        if (price) search.append("price", String(price - 0.01));
         if (quantity) search.append("quantity", String(quantity));
       })
       .otherwise(() => {

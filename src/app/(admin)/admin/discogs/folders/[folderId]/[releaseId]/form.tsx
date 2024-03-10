@@ -26,13 +26,15 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import CategorySelector from "~/components/admin/release/categories";
-import type { Categories } from "~/server/queries/woocommerce";
+import { addProductToWc, type Categories } from "~/server/queries/woocommerce";
 import Tracklist from "~/components/admin/release/tracklist";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { recordCondition, recordStatus } from "~/server/db/schema/record";
 import { Button } from "~/components/ui/button";
-import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useTransition } from "react";
+import { fold } from "fp-ts/lib/Either";
+import { toast } from "sonner";
 
 export default function AddReleaseForm({
   data: {
@@ -51,6 +53,10 @@ export default function AddReleaseForm({
   data: z.infer<typeof releaseSchema>;
   categoriesPromise: Promise<Categories>;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [pending, startTransition] = useTransition();
   const search = useSearchParams();
   const defaultValues = useMemo(
     () => ({
@@ -58,6 +64,7 @@ export default function AddReleaseForm({
       image: images?.[0]?.uri,
       title: getReleaseTitle(title, artists),
       labelId: labels?.[0]?.id ? String(labels[0].id) : "",
+      label: labels?.[0]?.name,
       catno: labels?.[0]?.catno ?? "",
       category: [],
       status: "active" as const,
@@ -84,9 +91,28 @@ export default function AddReleaseForm({
     defaultValues,
   });
 
+  const onSubmit = (data: z.infer<typeof addReleaseSchema>) => {
+    startTransition(async () => {
+      const res = await addProductToWc(data);
+
+      fold(
+        (e: string) => {
+          toast.error(e);
+        },
+        (m: string) => {
+          toast.success(m);
+          router.push(pathname.split("/").slice(0, -1).join("/"));
+        },
+      )(res);
+    });
+  };
+
   return (
     <Form {...form}>
-      <form className="relative my-auto h-full min-h-fit flex-col items-center justify-center overflow-hidden rounded-[0.5rem] bg-background shadow lg:container lg:grid lg:max-w-none lg:grid-cols-8 lg:border lg:px-0">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="relative my-auto h-full min-h-fit flex-col items-center justify-center overflow-hidden rounded-[0.5rem] bg-background shadow lg:container lg:grid lg:max-w-none lg:grid-cols-8 lg:border lg:px-0"
+      >
         <div className="relative col-span-2 mb-3 h-full flex-col items-center justify-center bg-muted p-4 dark:border-r lg:mb-0 lg:flex">
           <ImageSelector images={images} />
         </div>
@@ -258,7 +284,9 @@ export default function AddReleaseForm({
             >
               Reset
             </Button>
-            <Button>Save</Button>
+            <Button type="submit" loading={pending}>
+              Save
+            </Button>
           </div>
         </div>
       </form>

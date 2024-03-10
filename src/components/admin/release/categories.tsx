@@ -1,5 +1,5 @@
 import { use, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { type z } from "zod";
 import {
   FormField,
@@ -21,7 +21,7 @@ export default function CategorySelector({
   categoriesPromise,
   categories,
 }: Props) {
-  const form = useForm<z.infer<typeof addReleaseSchema>>();
+  const form = useFormContext<z.infer<typeof addReleaseSchema>>();
   const data = use(categoriesPromise);
 
   useEffect(() => {
