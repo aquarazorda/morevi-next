@@ -51,6 +51,7 @@ export function DataTable<TData, TValue>({
   onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [globalFilter, setGlobalFilter] = useState("");
+  const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable({
     data,
@@ -59,12 +60,15 @@ export function DataTable<TData, TValue>({
     onGlobalFilterChange: setGlobalFilter,
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
     filterFns: {
       fuzzy: fuzzyFilter,
     },
     state: {
       globalFilter,
+      rowSelection,
     },
   });
 

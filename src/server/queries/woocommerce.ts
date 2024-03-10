@@ -10,6 +10,7 @@ import { match } from "ts-pattern";
 import { chain, tryCatch } from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import CACHE_TAG from "./cache-tags";
+import { wcProductListSchema } from "../schemas/woocommerce/product";
 
 const wcApi = new WooCommerceRestApi({
   url: env.WP_HOST,
@@ -130,4 +131,24 @@ export const addProductToWc = (product: z.infer<typeof addReleaseSchema>) =>
         () => "Error adding product to WooCommerce. Please try again.",
       ),
     ),
+  )();
+
+export const getWcProductsFromDate = (date: string) =>
+  tryCatch(
+    () =>
+      wcApi
+        .get("products", {
+          after: date,
+          per_page: 100,
+          status: "publish",
+          stock_status: "instock",
+        })
+        .then((res) => {
+          const parsed = z.object({
+            data: wcProductListSchema,
+          });
+
+          return parsed.parse(res).data;
+        }),
+    () => "Error fetching products from WooCommerce.",
   )();

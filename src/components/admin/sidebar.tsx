@@ -33,7 +33,7 @@ const items = [
   {
     title: "Wolt",
     list: [
-      { title: "List", icon: ListIcon, href: "/admin/wolt" },
+      { title: "List", icon: ListIcon, href: "/admin/wolt/list" },
       {
         title: "Generate",
         icon: ChevronRightSquareIcon,
