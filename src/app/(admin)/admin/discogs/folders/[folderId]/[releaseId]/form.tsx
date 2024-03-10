@@ -47,6 +47,7 @@ export default function AddReleaseForm({
     genres,
     tracklist,
     videos,
+    year,
   },
   categoriesPromise,
 }: {
@@ -67,6 +68,7 @@ export default function AddReleaseForm({
       label: labels?.[0]?.name,
       catno: labels?.[0]?.catno ?? "",
       category: [],
+      year,
       status: "active" as const,
       price: search.get("price") ?? "0.00",
       stock: search.get("quantity") ? Number(search.get("quantity")) : 1,
