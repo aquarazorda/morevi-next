@@ -101,7 +101,9 @@ export default function AddReleaseForm({
         },
         (m: string) => {
           toast.success(m);
-          router.push(pathname.split("/").slice(0, -1).join("/"));
+          router.push(
+            pathname.split("/").slice(0, -1).join("/") + "#" + data.id,
+          );
         },
       )(res);
     });

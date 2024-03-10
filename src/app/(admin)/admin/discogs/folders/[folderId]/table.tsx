@@ -22,8 +22,13 @@ export const releasesTableColumns: ColumnDef<
   {
     header: "Thumbnail",
     accessorKey: "thumb",
-    cell: ({ getValue }) => (
-      <img className="size-20" src={getValue() as string} alt="Release Image" />
+    cell: ({ row }) => (
+      <img
+        className="size-20"
+        src={row.original.thumb}
+        alt="Release Image"
+        id={String(row.original.id)}
+      />
     ),
   },
   {
