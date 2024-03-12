@@ -87,6 +87,9 @@ export const validateRequest = cache(
         () => "Error validating session",
       ),
     ),
+    TE.chain((res) =>
+      !res.user || !res.session ? TE.left("Invalid session") : TE.right(res),
+    ),
     TE.chainFirst(({ session }) =>
       TE.fromIO(() => {
         createSessionCookie(session);

@@ -1,3 +1,5 @@
+"use server";
+
 import { Argon2id } from "oslo/password";
 import { redirect } from "next/navigation";
 import { pipe } from "fp-ts/lib/function";
@@ -23,10 +25,8 @@ const validatePassword = (password: string, hashed_password: string) =>
     ),
   );
 
-export function login(_: any, formData: FormData) {
-  "use server";
-
-  return pipe(
+export async function login(_: any, formData: FormData) {
+  return await pipe(
     testUsername(formData.get("username") as string),
     TE.fromEither,
     TE.bindTo("username"),
@@ -39,13 +39,11 @@ export function login(_: any, formData: FormData) {
     ),
     TE.chain(({ existingUser }) => createSession(existingUser.id)),
     TE.tap(() => TE.fromIO(() => redirect("/"))),
-  );
+  )();
 }
 
-export function logout() {
-  "use server";
-
-  return pipe(
+export async function logout() {
+  return await pipe(
     validateRequest,
     TE.chain(({ session }) =>
       session ? TE.right(session) : TE.left("Unauthorized"),
@@ -58,5 +56,5 @@ export function logout() {
     ),
     TE.tap(() => TE.fromIO(createSessionCookie)),
     TE.tap(() => TE.fromIO(() => redirect("/"))),
-  );
+  )();
 }
