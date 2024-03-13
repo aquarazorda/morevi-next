@@ -73,7 +73,7 @@ export const createSession = (userId: string) =>
     ),
   );
 
-export const validateRequest = cache(
+export const validateRequest = cache(() =>
   pipe(
     cookies().get(lucia.sessionCookieName)?.value ?? undefined,
     TE.fromNullable("No session found"),
@@ -91,5 +91,5 @@ export const validateRequest = cache(
         createSessionCookie(session);
       }),
     ),
-  ),
+  )(),
 );
