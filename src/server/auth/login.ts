@@ -6,7 +6,7 @@ import { pipe } from "fp-ts/lib/function";
 import {
   createSession,
   createSessionCookie,
-  isExistingUser,
+  getExistingUser,
   testPassword,
   testUsername,
   validateRequest,
@@ -34,12 +34,19 @@ export async function login(_: any, formData: FormData) {
     TE.bind("password", () =>
       TE.fromEither(testPassword(formData.get("password") as string)),
     ),
-    TE.bind("existingUser", ({ username }) => isExistingUser(username)),
+    TE.bind("existingUser", ({ username }) =>
+      pipe(
+        getExistingUser(username),
+        TE.flatMapNullable(
+          (existingUser) => existingUser,
+          () => "User doesn't exist",
+        ),
+      ),
+    ),
     TE.tap(({ password, existingUser }) =>
       validatePassword(password, existingUser.hashed_password),
     ),
     TE.chain(({ existingUser }) => createSession(existingUser.id)),
-    TE.tap(() => TE.fromIO(() => redirect("/"))),
   )();
 }
 

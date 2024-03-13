@@ -32,7 +32,7 @@ export const testPassword = (password?: string) => {
   return E.right(password);
 };
 
-export const isExistingUser = (username: string) =>
+export const getExistingUser = (username: string) =>
   pipe(
     TE.tryCatch(
       () =>
@@ -40,9 +40,6 @@ export const isExistingUser = (username: string) =>
           where: (user, { eq }) => eq(user.username, username.toLowerCase()),
         }),
       () => "Error checking if user exists",
-    ),
-    TE.chain((existingUser) =>
-      !existingUser ? TE.left("User doesn't exist") : TE.right(existingUser),
     ),
   );
 
@@ -73,7 +70,7 @@ export const createSession = (userId: string) =>
     ),
   );
 
-export const validateRequest = cache(() =>
+export const validateRequest = cache((isAdmin?: boolean) =>
   pipe(
     cookies().get(lucia.sessionCookieName)?.value ?? undefined,
     TE.fromNullable("No session found"),
@@ -84,7 +81,9 @@ export const validateRequest = cache(() =>
       ),
     ),
     TE.chain((res) =>
-      !res.user || !res.session ? TE.left("Invalid session") : TE.right(res),
+      !res.user || !res.session || (isAdmin && !res.user.isAdmin)
+        ? TE.left("Invalid session")
+        : TE.right(res),
     ),
     TE.chainFirst(({ session }) =>
       TE.fromIO(() => {

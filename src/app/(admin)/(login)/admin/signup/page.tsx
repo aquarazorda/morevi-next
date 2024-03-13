@@ -7,15 +7,16 @@ import { useState, useTransition } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { login } from "~/server/auth/login";
+import { signup } from "~/server/auth/signup";
 
-export default function AdminLoginPage() {
+export default function AdminSignupPage() {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
 
   const onSubmit = (formData: FormData) => {
     startTransition(async () => {
-      const res = await login(null, formData);
+      const res = await signup(null, formData);
+
       if (isRight(res)) {
         redirect("/admin");
       }
@@ -28,9 +29,11 @@ export default function AdminLoginPage() {
     <div className="container relative grid h-[800px] flex-col items-center justify-center">
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Create an account
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Enter your username and password to login
+            Enter your email below to create your account
           </p>
         </div>
         <div className={"grid gap-4"}>
@@ -65,7 +68,7 @@ export default function AdminLoginPage() {
                 />
               </div>
               <Button loading={pending} type="submit">
-                Sign In
+                Sign up
               </Button>
               <div>{error}</div>
             </div>
@@ -81,8 +84,8 @@ export default function AdminLoginPage() {
             </div>
           </div>
           <Button variant="outline" type="button" disabled={pending} asChild>
-            <Link href="/admin/signup" prefetch={false}>
-              Sign Up
+            <Link href="/admin/login" prefetch={false}>
+              Sign In
             </Link>
           </Button>
         </div>

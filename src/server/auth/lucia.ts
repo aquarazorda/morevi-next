@@ -15,6 +15,7 @@ export const lucia = new Lucia(adapter, {
   },
   getUserAttributes: (attributes) => ({
     username: attributes.username,
+    isAdmin: attributes.isAdmin,
   }),
 });
 
@@ -27,4 +28,5 @@ declare module "lucia" {
 
 interface DatabaseUserAttributes {
   username: string;
+  isAdmin: boolean;
 }

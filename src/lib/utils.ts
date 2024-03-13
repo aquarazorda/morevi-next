@@ -8,8 +8,10 @@ import { toast } from "sonner";
 export const fromPromiseFn =
   <T, U>(promiseFn: (args: U) => Promise<T>) =>
   (args: U) =>
-  () =>
-    promiseFn(args);
+  () => {
+    console.log(args);
+    return promiseFn(args);
+  };
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

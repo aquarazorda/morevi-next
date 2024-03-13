@@ -4,6 +4,7 @@ export const user = sqliteTable("user", {
   id: text("id").notNull().primaryKey(),
   username: text("username").notNull().unique(),
   hashed_password: text("password").notNull(),
+  isAdmin: integer("is_admin", { mode: "boolean" }).notNull().default(false),
 });
 
 export const session = sqliteTable("session", {

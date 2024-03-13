@@ -10,7 +10,7 @@ export default async function AdminLayout({
 }: {
   children: ReactNode;
 }) {
-  const isAuth = await validateRequest();
+  const isAuth = await validateRequest(true);
 
   if (isLeft(isAuth)) {
     return redirect("/admin/login");
