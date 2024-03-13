@@ -42,9 +42,7 @@ export const isExistingUser = (username: string) =>
       () => "Error checking if user exists",
     ),
     TE.chain((existingUser) =>
-      !existingUser
-        ? TE.left("Username already taken")
-        : TE.right(existingUser),
+      !existingUser ? TE.left("User doesn't exist") : TE.right(existingUser),
     ),
   );
 
@@ -77,10 +75,8 @@ export const createSession = (userId: string) =>
 
 export const validateRequest = cache(
   pipe(
-    cookies().get(lucia.sessionCookieName)?.value ?? null,
-    (sessionId) =>
-      sessionId ? E.right(sessionId) : E.left("No session found"),
-    TE.fromEither,
+    cookies().get(lucia.sessionCookieName)?.value ?? undefined,
+    TE.fromNullable("No session found"),
     TE.chain((sessionId) =>
       TE.tryCatch(
         () => lucia.validateSession(sessionId),

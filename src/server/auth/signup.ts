@@ -12,41 +12,27 @@ import {
 } from "./utils";
 import { flow, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import { fromPromiseFn } from "~/lib/utils";
 
 const getHashedPassword = flow(
   testPassword,
   TE.fromEither,
-  TE.bindTo("password"),
-  TE.chain(({ password }) =>
-    TE.tryCatch(
-      () => new Argon2id().hash(password),
-      () => "Error hashing password",
-    ),
-  ),
+  TE.chainTaskK(fromPromiseFn(new Argon2id().hash)),
 );
 
 export async function signup(_: any, formData: FormData) {
   "use server";
 
   return pipe(
-    testUsername(formData.get("username") as string),
-    TE.fromEither,
+    TE.fromEither(testUsername(formData.get("username") as string)),
     TE.bindTo("username"),
-    TE.bind("password", () =>
+    TE.bind("hashed_password", () =>
       getHashedPassword(formData.get("password") as string),
     ),
     TE.chainFirst(({ username }) => isExistingUser(username)),
     TE.bind("id", () => TE.right(generateId(15))),
-    TE.chainFirst(({ username, password, id }) =>
-      TE.tryCatch(
-        () =>
-          db.insert(user).values({
-            id,
-            username,
-            hashed_password: password,
-          }),
-        () => "Error creating user",
-      ),
+    TE.chainFirstTaskK(
+      fromPromiseFn((values) => db.insert(user).values(values)),
     ),
     TE.chain(({ id }) => createSession(id)),
     TE.tap(() => TE.fromIO(() => redirect("/"))),

@@ -5,6 +5,12 @@ import { type noteSchema } from "~/server/schemas/discogs/folders";
 import { match } from "ts-pattern";
 import { toast } from "sonner";
 
+export const fromPromiseFn =
+  <T, U>(promiseFn: (args: U) => Promise<T>) =>
+  (args: U) =>
+  () =>
+    promiseFn(args);
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

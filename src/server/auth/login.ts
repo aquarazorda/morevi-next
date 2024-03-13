@@ -18,10 +18,11 @@ const validatePassword = (password: string, hashed_password: string) =>
   pipe(
     TE.tryCatch(
       () => new Argon2id().verify(hashed_password, password),
-      () => "Error validating password",
+      () => "Error verifying password",
     ),
-    TE.chain((isValid) =>
-      isValid ? TE.right(true) : TE.left("Invalid password"),
+    TE.flatMapNullable(
+      () => true,
+      () => "Invalid password",
     ),
   );
 
@@ -45,14 +46,10 @@ export async function login(_: any, formData: FormData) {
 export async function logout() {
   return await pipe(
     validateRequest,
-    TE.chain(({ session }) =>
-      session ? TE.right(session) : TE.left("Unauthorized"),
-    ),
-    TE.tap((session) =>
-      TE.tryCatch(
-        () => lucia.invalidateSession(session.id),
-        () => "Error invalidating session",
-      ),
+    TE.chainFirstTaskK(
+      ({ session }) =>
+        () =>
+          lucia.invalidateSession(session.id),
     ),
     TE.tap(() => TE.fromIO(createSessionCookie)),
     TE.tap(() => TE.fromIO(() => redirect("/"))),
