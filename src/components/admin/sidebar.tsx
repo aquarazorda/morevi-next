@@ -13,16 +13,16 @@ import { cn } from "~/lib/utils";
 import AdminNavbarLinkButton from "./link-button";
 
 const items = [
-  {
-    title: "Morevi",
-    list: [
-      { title: "Home", icon: ShellIcon, href: "/admin" },
-      { title: "Stock", icon: LayersIcon, href: "/admin/stock" },
-      { title: "Users", icon: UsersRound, href: "/admin/users" },
-      { title: "Orders", icon: ShuffleIcon, href: "/admin/orders" },
-      { title: "Categories", icon: BookAIcon, href: "/admin/categories" },
-    ],
-  },
+  // {
+  //   title: "Morevi",
+  //   list: [
+  //     { title: "Home", icon: ShellIcon, href: "/admin" },
+  //     { title: "Stock", icon: LayersIcon, href: "/admin/stock" },
+  //     { title: "Users", icon: UsersRound, href: "/admin/users" },
+  //     { title: "Orders", icon: ShuffleIcon, href: "/admin/orders" },
+  //     { title: "Categories", icon: BookAIcon, href: "/admin/categories" },
+  //   ],
+  // },
   {
     title: "Discogs",
     list: [
@@ -30,14 +30,25 @@ const items = [
       { title: "Add new", icon: CopyPlusIcon, href: "/admin/discogs/add" },
     ],
   },
+  // {
+  //   title: "Wolt",
+  //   list: [
+  //     { title: "List", icon: ListIcon, href: "/admin/wolt/list" },
+  //     {
+  //       title: "Generate",
+  //       icon: ChevronRightSquareIcon,
+  //       href: "/admin/wolt/generate",
+  //     },
+  //   ],
+  // },
   {
-    title: "Wolt",
+    title: "Instagram",
     list: [
-      { title: "List", icon: ListIcon, href: "/admin/wolt/list" },
+      { title: "List", icon: ListIcon, href: "/admin/instagram/list" },
       {
         title: "Generate",
         icon: ChevronRightSquareIcon,
-        href: "/admin/wolt/generate",
+        href: "/admin/instagram/generate",
       },
     ],
   },

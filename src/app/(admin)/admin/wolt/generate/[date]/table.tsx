@@ -30,7 +30,6 @@ const columns: ColumnDef<z.infer<typeof wcProductSchema>>[] = [
     enableSorting: false,
     enableHiding: false,
   },
-
   {
     id: "image",
     header: "Image",

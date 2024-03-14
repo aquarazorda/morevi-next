@@ -8,6 +8,8 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
   type FilterFn,
+  type OnChangeFn,
+  type PaginationState,
 } from "@tanstack/react-table";
 import { useState } from "react";
 import { rankItem } from "@tanstack/match-sorter-utils";
@@ -27,6 +29,11 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   onRowClick?: (row: TData) => void;
+  pagination?: PaginationState;
+  manualPagination?: boolean;
+  pageCount?: number;
+  rowCount?: number;
+  onPaginationChange?: OnChangeFn<PaginationState>;
 }
 
 declare module "@tanstack/table-core" {
@@ -49,6 +56,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   onRowClick,
+  ...pagination
 }: DataTableProps<TData, TValue>) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [rowSelection, setRowSelection] = useState({});
@@ -70,6 +78,7 @@ export function DataTable<TData, TValue>({
       globalFilter,
       rowSelection,
     },
+    ...pagination,
   });
 
   return (
@@ -82,16 +91,22 @@ export function DataTable<TData, TValue>({
           className="max-w-sm"
         />
         <div className="ml-auto flex items-center justify-end space-x-2 py-4">
-          <span className="flex items-center gap-1">
-            <div>Page</div>
-            {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount().toLocaleString()}
-          </span>
+          {pagination?.pageCount > -1 && (
+            <span className="flex items-center gap-1">
+              <div>Page</div>
+              {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount().toLocaleString()}
+            </span>
+          )}
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            disabled={
+              pagination.pageCount > -1
+                ? !table.getCanPreviousPage()
+                : pagination.pagination?.pageIndex === 0
+            }
           >
             Previous
           </Button>
@@ -99,7 +114,9 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            disabled={
+              pagination.pageCount > -1 ? !table.getCanNextPage() : !data.length
+            }
           >
             Next
           </Button>
@@ -158,17 +175,23 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       <div className="flex w-full items-center space-x-2 py-4">
-        <span className="flex items-center gap-1">
-          <div>Page</div>
-          {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount().toLocaleString()}
-        </span>
-        <div className="flex w-full flex-1 items-center justify-end">
+        {pagination?.pageCount > -1 && (
+          <span className="flex items-center gap-1">
+            <div>Page</div>
+            {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount().toLocaleString()}
+          </span>
+        )}
+        <div className="flex w-full flex-1 items-center justify-end gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            disabled={
+              pagination.pageCount > -1
+                ? !table.getCanPreviousPage()
+                : pagination.pagination?.pageIndex === 0
+            }
           >
             Previous
           </Button>
@@ -176,7 +199,9 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            disabled={
+              pagination.pageCount > -1 ? !table.getCanNextPage() : !data.length
+            }
           >
             Next
           </Button>

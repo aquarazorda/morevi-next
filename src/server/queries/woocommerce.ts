@@ -7,10 +7,14 @@ import { env } from "~/env";
 import { addReleaseSchema } from "../schemas/discogs/release";
 import { type recordCondition } from "../db/schema/record";
 import { match } from "ts-pattern";
-import { chain, tryCatch } from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
+import * as TE from "fp-ts/lib/TaskEither";
 import CACHE_TAG from "./cache-tags";
-import { wcProductListSchema } from "../schemas/woocommerce/product";
+import {
+  wcProductListSchema,
+  wcProductResponseSchema,
+} from "../schemas/woocommerce/product";
+import { parseToEither } from "~/lib/utils";
 
 const wcApi = new WooCommerceRestApi({
   url: env.WP_HOST,
@@ -117,12 +121,12 @@ const addPostTransform = addReleaseSchema.transform(
 
 export const addProductToWc = (product: z.infer<typeof addReleaseSchema>) =>
   pipe(
-    tryCatch(
+    TE.tryCatch(
       () => addPostTransform.parseAsync(product),
       () => "Incorrect product data. Please check the form.",
     ),
-    chain((body) =>
-      tryCatch(
+    TE.chain((body) =>
+      TE.tryCatch(
         () =>
           wcApi.post("products", body).then(() => {
             revalidateTag(CACHE_TAG.WC_CATEGORIES);
@@ -134,7 +138,7 @@ export const addProductToWc = (product: z.infer<typeof addReleaseSchema>) =>
   )();
 
 export const getWcProductsFromDate = (date: string) =>
-  tryCatch(
+  TE.tryCatch(
     () =>
       wcApi
         .get("products", {
@@ -151,4 +155,21 @@ export const getWcProductsFromDate = (date: string) =>
           return parsed.parse(res).data;
         }),
     () => "Error fetching products from WooCommerce.",
+  )();
+
+export const getWcProducts = (page: number) =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        wcApi
+          .get("products", {
+            per_page: 10,
+            page,
+            status: "publish",
+            stock_status: "instock",
+          })
+          .then(parseToEither(wcProductResponseSchema)),
+      () => "Error fetching products from WooCommerce.",
+    ),
+    TE.chain(TE.fromEither),
   )();

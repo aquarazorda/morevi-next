@@ -17,3 +17,14 @@ export const wcProductSchema = z.object({
 });
 
 export const wcProductListSchema = z.array(wcProductSchema);
+
+export const wcProductResponseSchema = z
+  .object({
+    data: z.array(
+      wcProductSchema.transform(({ images, ...rest }) => ({
+        image: images[0].src,
+        ...rest,
+      })),
+    ),
+  })
+  .transform((data) => data.data);

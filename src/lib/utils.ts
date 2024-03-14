@@ -1,9 +1,10 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { type z } from "zod";
+import { type ZodSchema, type z } from "zod";
 import { type noteSchema } from "~/server/schemas/discogs/folders";
 import { match } from "ts-pattern";
 import { toast } from "sonner";
+import { left, right } from "fp-ts/lib/Either";
 
 export const fromPromiseFn =
   <T, U>(promiseFn: (args: U) => Promise<T>) =>
@@ -29,6 +30,17 @@ export function getReleaseTitle(title: string, artists: { name: string }[]) {
   // we need to replace all "(n)" with empty string in artist name
   return `${artists.map((artist) => removeNumberInParentheses(artist.name)).join(", ")} - ${title}`;
 }
+
+export const parseToEither =
+  <T>(schema: ZodSchema<T>) =>
+  (data: unknown) => {
+    const result = schema.safeParse(data);
+    if (result.success) {
+      return right(result.data);
+    }
+
+    return left(result.error.flatten().formErrors.join(" | "));
+  };
 
 export async function copyToClipboard(text: string) {
   try {
