@@ -11,6 +11,7 @@ export default async function AdminLayout({
   children: ReactNode;
 }) {
   const isAuth = await validateRequestClient(true);
+  console.log(isAuth);
 
   if (isLeft(isAuth)) {
     return redirect("/admin/login");
