@@ -1,78 +1,90 @@
-import { z } from "zod";
+import * as S from "@effect/schema/Schema";
 import { removeNumberInParentheses } from "~/lib/utils";
-import { recordCondition, recordStatus } from "~/server/db/schema/record";
 
-export const addReleaseSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  image: z.string().url(),
-  artists: z.array(z.string()).optional(),
-  labelId: z.string(),
-  year: z.coerce.number(),
-  catno: z.string().optional(),
-  label: z.string().optional(),
-  tracks: z
-    .array(
-      z.object({
-        position: z.string(),
-        title: z.string(),
-        duration: z.string().optional(),
-        link: z.string().optional(),
+export const addReleaseSchema = S.struct({
+  id: S.string,
+  title: S.string,
+  image: S.string.pipe(S.startsWith("http")),
+  artists: S.optional(S.array(S.string)),
+  labelId: S.string,
+  year: S.number,
+  catno: S.optional(S.string),
+  label: S.optional(S.string),
+  tracks: S.optional(
+    S.array(
+      S.struct({
+        position: S.string,
+        title: S.string,
+        duration: S.optional(S.string),
+        link: S.optional(S.string),
       }),
-    )
-    .optional(),
-  stock: z.coerce.number(),
-  condition: z.enum(recordCondition),
-  status: z.enum(recordStatus),
-  price: z.string().optional(),
-  category: z.array(z.number()),
+    ),
+  ),
+  stock: S.number,
+  condition: S.literal(
+    "Mint (M)",
+    "Near Mint (NM or M-)",
+    "Very Good Plus (VG+)",
+    "Very Good (VG)",
+    "Good Plus (G+)",
+    "Good (G)",
+    "Fair (F)",
+    "Poor (P)",
+  ),
+  status: S.literal("draft", "active"),
+  price: S.optional(S.string),
+  category: S.array(S.number),
 });
 
-export const discogsLabelSchema = z.object({
-  id: z.number(),
-  name: z.string().transform((name) => removeNumberInParentheses(name)!),
-  catno: z.string().optional(),
+export const discogsLabelSchema = S.struct({
+  id: S.number,
+  name: S.string.pipe(
+    S.transform(S.string, removeNumberInParentheses, (name) => name),
+  ),
+  catno: S.optional(S.string),
 });
 
-export const releaseImages = z
-  .array(
-    z.object({
-      type: z.enum(["primary", "secondary"]),
-      uri: z.string().url(),
-    }),
-  )
-  .optional();
-
-export const discogsTracklistSchema = z
-  .array(
-    z.object({
-      position: z.string(),
-      title: z.string(),
-      duration: z.string().optional(),
-    }),
-  )
-  .optional();
-
-export const releaseSchema = z.object({
-  id: z.number(),
-  year: z.number(),
-  title: z.string(),
-  artists: z.array(
-    z.object({
-      name: z.string().transform((name) => removeNumberInParentheses(name)!),
+export const releaseImages = S.optional(
+  S.array(
+    S.struct({
+      type: S.literal("primary", "secondary"),
+      uri: S.string.pipe(S.startsWith("http")),
     }),
   ),
-  labels: z.array(discogsLabelSchema),
-  genres: z.array(z.string()).optional(),
-  styles: z.array(z.string()).optional(),
+);
+
+export const discogsTracklistSchema = S.optional(
+  S.array(
+    S.struct({
+      position: S.string,
+      title: S.string,
+      duration: S.optional(S.string),
+    }),
+  ),
+);
+
+export const releaseSchema = S.struct({
+  id: S.number,
+  year: S.number,
+  title: S.string,
+  artists: S.array(
+    S.struct({
+      name: S.string.pipe(
+        S.transform(S.string, removeNumberInParentheses, (name) => name),
+      ),
+    }),
+  ),
+  labels: S.array(discogsLabelSchema),
+  genres: S.optional(S.array(S.string)),
+  styles: S.optional(S.array(S.string)),
   tracklist: discogsTracklistSchema,
   images: releaseImages,
-  videos: z
-    .array(
-      z.object({
-        uri: z.string().url(),
-        title: z.string(),
+  videos: S.optional(
+    S.array(
+      S.struct({
+        uri: S.string.pipe(S.startsWith("http")),
+        title: S.string,
       }),
-    )
-    .optional(),
+    ),
+  ),
 });

@@ -1,6 +1,5 @@
 "use server";
 
-import { type ZodObject, type ZodRawShape } from "zod";
 import { env } from "~/env";
 import {
   foldersResponseSchema,
@@ -8,13 +7,38 @@ import {
 } from "../schemas/discogs/folders";
 import { releaseSchema } from "../schemas/discogs/release";
 import { discogsSearchResultsSchema } from "../schemas/discogs/search";
+import { pipe, Effect } from "effect";
+import { FetchError } from "~/lib/errors";
+import type * as S from "@effect/schema/Schema";
+import * as ParseResult from "@effect/schema/ParseResult";
 
 const foldersPath = "/users/MoreviTBS/collection/folders";
 
-export const getFolders = () =>
-  getDiscogs(foldersPath, foldersResponseSchema).then(
-    (res) => res?.folders ?? [],
+export const getDiscogs = <A, I, R>(path: string, schema: S.Schema<A, I, R>) =>
+  pipe(
+    Effect.tryPromise({
+      try: () =>
+        fetch("https://api.discogs.com" + path, {
+          headers: {
+            Authorization: `Discogs token=${env.DISCOGS_TOKEN}`,
+          },
+          next: {
+            revalidate: 3600,
+          },
+        }),
+      catch: (e) => new FetchError(e),
+    }),
+    ParseResult.decodeUnknown(schema),
   );
+
+export const getFolders = pipe(
+  getDiscogs(foldersPath, foldersResponseSchema),
+  Effect.catchAll(() =>
+    Effect.succeed(
+      [] as unknown as S.Schema.Type<typeof foldersResponseSchema>,
+    ),
+  ),
+);
 
 export const getReleases = (folderId: string) =>
   getDiscogs(
@@ -30,24 +54,3 @@ export const getDiscogsSearch = (query: string) =>
     `/database/search?type=release&per_page=50&query=${query}`,
     discogsSearchResultsSchema,
   );
-
-export const getDiscogs = <T extends ZodRawShape>(
-  path: string,
-  schema: ZodObject<T>,
-) =>
-  fetch("https://api.discogs.com" + path, {
-    headers: {
-      Authorization: `Discogs token=${env.DISCOGS_TOKEN}`,
-    },
-    next: {
-      revalidate: 3600,
-    },
-  })
-    .then(async (res) => {
-      // TODO maybe there's multiple pages
-      return schema.parse(await res.json());
-    })
-    .catch((e) => {
-      console.log(JSON.stringify(e));
-      return undefined;
-    });

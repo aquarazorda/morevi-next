@@ -22,7 +22,7 @@ export function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function removeNumberInParentheses<T extends string>(str?: T) {
+export function removeNumberInParentheses<T extends string>(str: T) {
   return str?.replace(/\(?\d+\)?/g, "");
 }
 
