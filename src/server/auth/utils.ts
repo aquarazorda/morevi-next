@@ -1,94 +1,94 @@
-import * as E from "fp-ts/lib/Either";
-import * as TE from "fp-ts/lib/TaskEither";
-import { pipe } from "fp-ts/lib/function";
 import { db } from "../db";
 import { lucia } from "./lucia";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { type Session } from "lucia";
+import { Effect, Either, pipe } from "effect";
 
-export const testUsername = (username?: string) => {
+export const testUsername = (
+  username?: string,
+): Either.Either<string, string> => {
   if (
     typeof username !== "string" ||
     username.length < 3 ||
     username.length > 31 ||
     !/^[a-z0-9_-]+$/.test(username)
   ) {
-    return E.left("Invalid username");
+    return Either.left("Invalid username");
   }
 
-  return E.right(username);
+  return Either.right(username);
 };
 
-export const testPassword = (password?: string) => {
+export const testPassword = (
+  password?: string,
+): Either.Either<string, string> => {
   if (
     typeof password !== "string" ||
     password.length < 6 ||
     password.length > 255
   ) {
-    return E.left("Invalid password");
+    return Either.left("Invalid password");
   }
 
-  return E.right(password);
+  return Either.right(password);
 };
 
 export const getExistingUser = (username: string) =>
   pipe(
-    TE.tryCatch(
-      () =>
+    Effect.tryPromise({
+      try: () =>
         db.query.user.findFirst({
           where: (user, { eq }) => eq(user.username, username.toLowerCase()),
         }),
-      () => "Error checking if user exists",
-    ),
+      catch: () => "Error finding user",
+    }),
+    Effect.flatMap(Effect.fromNullable),
+    Effect.mapError(() => "User doesn't exist"),
   );
 
-export const createSessionCookie = (session?: Session | null) => {
-  const sessionCookie = session
-    ? lucia.createSessionCookie(session.id)
-    : lucia.createBlankSessionCookie();
+export const createSessionCookie = (session?: Session | null) =>
+  Effect.sync(() => {
+    const sessionCookie = session
+      ? lucia.createSessionCookie(session.id)
+      : lucia.createBlankSessionCookie();
 
-  try {
-    cookies().set(
-      sessionCookie.name,
-      sessionCookie.value,
-      sessionCookie.attributes,
-    );
-  } catch {}
-};
+    Effect.try({
+      try: () =>
+        cookies().set(
+          sessionCookie.name,
+          sessionCookie.value,
+          sessionCookie.attributes,
+        ),
+      catch: () => "Error setting session cookie",
+    });
+  });
 
 export const createSession = (userId: string) =>
   pipe(
-    TE.tryCatch(
-      () => lucia.createSession(userId, {}),
-      () => "Error creating session",
-    ),
-    TE.chainFirst((session) =>
-      TE.fromIO(() => {
-        createSessionCookie(session);
-      }),
-    ),
+    Effect.tryPromise({
+      try: () => lucia.createSession(userId, {}),
+      catch: () => "Error creating session",
+    }),
+    Effect.tap((session) => createSessionCookie(session)),
   );
 
 export const validateRequest = cache((isAdmin?: boolean) =>
   pipe(
     cookies().get(lucia.sessionCookieName)?.value ?? undefined,
-    TE.fromNullable("No session found"),
-    TE.chain((sessionId) =>
-      TE.tryCatch(
-        () => lucia.validateSession(sessionId),
-        () => "Error validating session",
-      ),
-    ),
-    TE.chain((res) =>
-      !res.user || !res.session || (isAdmin && !res.user.isAdmin)
-        ? TE.left("Invalid session")
-        : TE.right(res),
-    ),
-    TE.chainFirst(({ session }) =>
-      TE.fromIO(() => {
-        createSessionCookie(session);
+    Effect.fromNullable,
+    Effect.mapError(() => "No session found"),
+    Effect.flatMap((sessionId) =>
+      Effect.tryPromise({
+        try: () => lucia.validateSession(sessionId),
+        catch: () => "Error validating session",
       }),
     ),
-  )(),
+    Effect.flatMap((res) =>
+      !res.user || !res.session || (isAdmin && !res.user.isAdmin)
+        ? Effect.fail("Invalid session")
+        : Effect.succeed(res),
+    ),
+    Effect.tap(({ session }) => createSessionCookie(session)),
+  ),
 );
