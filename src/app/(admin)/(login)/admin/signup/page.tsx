@@ -1,6 +1,6 @@
 "use client";
 
-import { isRight } from "fp-ts/lib/Either";
+import { isRight } from "effect/Either";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useState, useTransition } from "react";

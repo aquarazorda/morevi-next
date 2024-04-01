@@ -1,16 +1,16 @@
-import { isLeft } from "fp-ts/lib/Either";
+import { isLeft } from "effect/Either";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { Sidebar } from "~/components/admin/sidebar";
 import { Toaster } from "~/components/ui/sonner";
-import { validateRequest } from "~/server/auth/utils";
+import { validateRequestClient } from "~/server/auth/utils";
 
 export default async function AdminLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const isAuth = await validateRequest(true);
+  const isAuth = await validateRequestClient(true);
 
   if (isLeft(isAuth)) {
     return redirect("/admin/login");

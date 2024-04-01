@@ -1,7 +1,6 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import type { z } from "zod";
 import ImageSelector from "~/components/admin/release/image-selector";
 import {
   Form,
@@ -15,7 +14,7 @@ import {
   addReleaseSchema,
   type releaseSchema,
 } from "~/server/schemas/discogs/release";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { createSchemaResolver } from "~/lib/effect-schema-resolver";
 import { Input } from "~/components/ui/input";
 import { capitalize, getReleaseTitle } from "~/lib/utils";
 import {
@@ -33,8 +32,9 @@ import { recordCondition, recordStatus } from "~/server/db/schema/record";
 import { Button } from "~/components/ui/button";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useTransition } from "react";
-import { fold } from "fp-ts/lib/Either";
 import { toast } from "sonner";
+import type { Schema } from "@effect/schema/Schema";
+import { Either, pipe } from "effect";
 
 export default function AddReleaseForm({
   data: {
@@ -51,7 +51,7 @@ export default function AddReleaseForm({
   },
   categoriesPromise,
 }: {
-  data: z.infer<typeof releaseSchema>;
+  data: Schema.Type<typeof releaseSchema>;
   categoriesPromise: Promise<Categories>;
 }) {
   const router = useRouter();
@@ -88,26 +88,25 @@ export default function AddReleaseForm({
     [],
   );
 
-  const form = useForm<z.infer<typeof addReleaseSchema>>({
-    resolver: zodResolver(addReleaseSchema),
+  const form = useForm<Schema.Type<typeof addReleaseSchema>>({
+    resolver: createSchemaResolver(addReleaseSchema),
     defaultValues,
   });
 
-  const onSubmit = (data: z.infer<typeof addReleaseSchema>) => {
+  const onSubmit = (data: Schema.Type<typeof addReleaseSchema>) => {
     startTransition(async () => {
-      const res = await addProductToWc(data);
-
-      fold(
-        (e: string) => {
-          toast.error(e);
-        },
-        (m: string) => {
-          toast.success(m);
-          router.push(
-            pathname.split("/").slice(0, -1).join("/") + "#" + data.id,
-          );
-        },
-      )(res);
+      pipe(
+        await addProductToWc(data),
+        Either.match({
+          onLeft: toast.error,
+          onRight: (m: string) => {
+            toast.success(m);
+            router.push(
+              pathname.split("/").slice(0, -1).join("/") + "#" + data.id,
+            );
+          },
+        }),
+      );
     });
   };
 

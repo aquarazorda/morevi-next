@@ -1,5 +1,5 @@
 import * as S from "@effect/schema/Schema";
-import { identity } from "fp-ts/lib/function";
+import { identity } from "effect";
 
 export const wcProductSchema = S.struct({
   id: S.number,

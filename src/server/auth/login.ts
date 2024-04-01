@@ -23,8 +23,8 @@ const validatePassword = (password: string, hashed_password: string) =>
     Effect.mapError(() => "Invalid password"),
   );
 
-export function login(_: any, formData: FormData) {
-  return pipe(
+const login_ = (_: any, formData: FormData) =>
+  pipe(
     testUsername(formData.get("username") as string),
     Effect.bindTo("username"),
     Effect.bind("password", () =>
@@ -42,7 +42,9 @@ export function login(_: any, formData: FormData) {
     ),
     Effect.flatMap(({ existingUser }) => createSession(existingUser.id)),
   );
-}
+
+export const login = (_: any, formData: FormData) =>
+  pipe(login_(_, formData), Effect.either, Effect.runPromise);
 
 export async function logout() {
   return pipe(

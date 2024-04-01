@@ -23,8 +23,8 @@ const getHashedPassword = flow(
   ),
 );
 
-export function signup(_: any, formData: FormData) {
-  return pipe(
+const signup_ = (_: any, formData: FormData) =>
+  pipe(
     testUsername(formData.get("username") as string),
     Effect.bindTo("username"),
     Effect.bind("hashed_password", () =>
@@ -49,4 +49,5 @@ export function signup(_: any, formData: FormData) {
     ),
     Effect.flatMap(({ id }) => createSession(id)),
   );
-}
+
+export const signup = flow(signup_, Effect.either, Effect.runPromise);

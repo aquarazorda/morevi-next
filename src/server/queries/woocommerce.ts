@@ -5,15 +5,13 @@ import { revalidateTag, unstable_cache } from "next/cache";
 import { env } from "~/env";
 import { addReleaseSchema } from "../schemas/discogs/release";
 import { type recordCondition } from "../db/schema/record";
-import { match } from "ts-pattern";
 import CACHE_TAG from "./cache-tags";
 import {
   wcProductListSchema,
   wcProductResponseSchema,
 } from "../schemas/woocommerce/product";
 import * as S from "@effect/schema/Schema";
-import { Effect, pipe } from "effect";
-import { identity } from "fp-ts/lib/function";
+import { Effect, Match, identity, pipe } from "effect";
 import * as ParseResult from "@effect/schema/ParseResult";
 
 const wcApi = new WooCommerceRestApi({
@@ -94,10 +92,11 @@ const generateDescription = ({
   condition?: (typeof recordCondition)[number];
   tracks?: S.Schema.Type<typeof addReleaseSchema>["tracks"];
 }) => {
-  const conditionText = match(condition)
-    .with("Mint (M)", () => "ახალი (M)")
-    .with("Near Mint (NM or M-)", () => "ახალივით (NM)")
-    .otherwise((s) => "კარგი (" + s?.split("(")[1]);
+  const conditionText = Match.value(condition).pipe(
+    Match.when("Mint (M)", () => "ახალი (M)"),
+    Match.when("Near Mint (NM or M-)", () => "ახალივით (NM)"),
+    Match.orElse((s) => "კარგი (" + s?.split("(")[1]),
+  );
 
   const res = [
     label ? `ლეიბლი - ${label}${catno ? " / " + catno : ""}` : "",
@@ -151,6 +150,8 @@ export const addProductToWc = (
         catch: () => "Error adding product to WooCommerce. Please try again.",
       }),
     ),
+    Effect.either,
+    Effect.runPromise,
   );
 
 export const getWcProductsFromDate = (date: string) =>
@@ -167,6 +168,8 @@ export const getWcProductsFromDate = (date: string) =>
     }),
     ParseResult.decodeUnknown(wcProductListSchema),
     ParseResult.mapError(() => "Error parsing products from WooCommerce."),
+    Effect.either,
+    Effect.runPromise,
   );
 
 export const getWcProducts = (page: number) =>
@@ -183,4 +186,6 @@ export const getWcProducts = (page: number) =>
     }),
     ParseResult.decodeUnknown(wcProductResponseSchema),
     ParseResult.mapError(() => "Error parsing products from WooCommerce."),
+    Effect.either,
+    Effect.runPromise,
   );

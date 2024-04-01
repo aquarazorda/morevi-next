@@ -3,18 +3,20 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { type z } from "zod";
 import { DataTable } from "~/components/ui/data-table";
 import { type wcProductResponseSchema } from "~/server/schemas/woocommerce/product";
 import AddVideoModal from "./modal";
 import { useState } from "react";
+import { type Schema } from "@effect/schema/Schema";
 
-const columns: ColumnDef<z.infer<typeof wcProductResponseSchema>[number]>[] = [
+type DataType = Schema.Type<typeof wcProductResponseSchema>;
+
+const columns: ColumnDef<DataType["data"][number]>[] = [
   {
     id: "image",
     header: "Image",
-    accessorFn: (row) => row.image,
+    accessorFn: (row) => row.images[0]?.src,
     cell: ({ getValue }) => (
       <img src={getValue() as string} className="size-20" alt="Release Image" />
     ),
@@ -49,7 +51,7 @@ export default function InstagramListTable({
   data,
 }: {
   page: number;
-  data: z.infer<typeof wcProductResponseSchema>;
+  data: DataType;
 }) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -58,7 +60,7 @@ export default function InstagramListTable({
   return (
     <>
       <DataTable
-        data={data}
+        data={data.data as DataType["data"][number][]}
         columns={columns}
         manualPagination
         pageCount={-1}
@@ -72,12 +74,12 @@ export default function InstagramListTable({
           if (typeof updater !== "function") return;
           const { pageIndex } = updater({
             pageIndex: page - 1,
-            pageSize: data.length,
+            pageSize: data.data.length,
           });
 
           router.push("/admin/instagram/list/" + (pageIndex + 1));
         }}
-        pagination={{ pageIndex: page - 1, pageSize: data.length }}
+        pagination={{ pageIndex: page - 1, pageSize: data.data.length }}
       />
       <AddVideoModal isOpen={isOpen} setIsOpen={setIsOpen} videos={videos} />
     </>

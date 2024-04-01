@@ -3,7 +3,7 @@ import { lucia } from "./lucia";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { type Session } from "lucia";
-import { Effect, Either, pipe } from "effect";
+import { Effect, Either, flow, pipe } from "effect";
 
 export const testUsername = (
   username?: string,
@@ -91,4 +91,10 @@ export const validateRequest = cache((isAdmin?: boolean) =>
     ),
     Effect.tap(({ session }) => createSessionCookie(session)),
   ),
+);
+
+export const validateRequestClient = flow(
+  validateRequest,
+  Effect.either,
+  Effect.runPromise,
 );
