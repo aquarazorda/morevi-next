@@ -2,19 +2,19 @@
 
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import { revalidateTag, unstable_cache } from "next/cache";
-import { z } from "zod";
 import { env } from "~/env";
 import { addReleaseSchema } from "../schemas/discogs/release";
 import { type recordCondition } from "../db/schema/record";
 import { match } from "ts-pattern";
-import { pipe } from "fp-ts/lib/function";
-import * as TE from "fp-ts/lib/TaskEither";
 import CACHE_TAG from "./cache-tags";
 import {
   wcProductListSchema,
   wcProductResponseSchema,
 } from "../schemas/woocommerce/product";
-import { parseToEither } from "~/lib/utils";
+import * as S from "@effect/schema/Schema";
+import { Effect, pipe } from "effect";
+import { identity } from "fp-ts/lib/function";
+import * as ParseResult from "@effect/schema/ParseResult";
 
 const wcApi = new WooCommerceRestApi({
   url: env.WP_HOST,
@@ -23,43 +23,47 @@ const wcApi = new WooCommerceRestApi({
   version: "wc/v3",
 });
 
-const categorySchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  slug: z.string(),
-  count: z.number(),
+const categorySchema = S.struct({
+  id: S.number,
+  name: S.string,
+  slug: S.string,
+  count: S.number,
 });
 
-const categoryResponseSchema = z
-  .object({
-    data: z.array(categorySchema),
-  })
-  .transform((data) => data.data);
+const categoryResponseSchema = S.struct({
+  data: S.array(categorySchema),
+}).pipe(
+  S.transform(
+    S.array(categorySchema),
+    (data) => data.data,
+    (data) => ({ data }),
+  ),
+);
 
-export type Categories = z.infer<typeof categorySchema>[];
+export type Categories = S.Schema.Type<typeof categorySchema>[];
 
 export const getWcCategories = unstable_cache(
   () =>
-    wcApi
-      .get("products/categories", {
-        per_page: 100,
-        orderby: "count",
-        order: "desc",
-      })
-      .then((res) => {
-        return categoryResponseSchema.parse(res);
-      })
-      .catch((error: unknown) => {
-        console.log(error);
-
-        return [] as Categories;
-      }),
+    Effect.runPromiseExit(
+      pipe(
+        Effect.tryPromise({
+          try: () =>
+            wcApi.get("products/categories", {
+              per_page: 100,
+              orderby: "count",
+              order: "desc",
+            }),
+          catch: (e) => e,
+        }),
+        S.decodeUnknown(categoryResponseSchema),
+      ),
+    ),
   ["getWcCategories"],
   { tags: [CACHE_TAG.WC_CATEGORIES], revalidate: 600 },
 );
 
 const generateTracklist = (
-  tracklist: z.infer<typeof addReleaseSchema>["tracks"],
+  tracklist: S.Schema.Type<typeof addReleaseSchema>["tracks"],
 ) => {
   if (!tracklist) return "";
 
@@ -88,7 +92,7 @@ const generateDescription = ({
   label?: string;
   catno?: string;
   condition?: (typeof recordCondition)[number];
-  tracks?: z.infer<typeof addReleaseSchema>["tracks"];
+  tracks?: S.Schema.Type<typeof addReleaseSchema>["tracks"];
 }) => {
   const conditionText = match(condition)
     .with("Mint (M)", () => "ახალი (M)")
@@ -107,69 +111,76 @@ const generateDescription = ({
   return res.filter(Boolean).join("\n");
 };
 
-const addPostTransform = addReleaseSchema.transform(
-  ({ category, image, price, title, status, ...rest }) => ({
-    type: "simple",
-    name: title,
-    status: status === "draft" ? "draft" : "publish",
-    categories: category.map((id) => ({ id })),
-    images: [{ src: image }],
-    regular_price: price,
-    short_description: generateDescription(rest),
-  }),
+const addPostTransform = addReleaseSchema.pipe(
+  S.transform(
+    S.struct({
+      type: S.literal("simple"),
+      status: S.literal("draft", "publish"),
+      categories: S.array(S.struct({ id: S.number })),
+      regular_price: S.optional(S.string),
+      images: S.array(S.struct({ src: S.string })),
+      short_description: S.string,
+    }),
+    ({ category, image, price, title, status, ...rest }) => ({
+      type: "simple" as const,
+      name: title,
+      status: status === "draft" ? ("draft" as const) : ("publish" as const),
+      categories: category.map((id) => ({ id })),
+      images: [{ src: image }],
+      regular_price: price,
+      short_description: generateDescription(rest),
+    }),
+    identity,
+    { strict: false },
+  ),
 );
-
-export const addProductToWc = (product: z.infer<typeof addReleaseSchema>) =>
+export const addProductToWc = (
+  product: S.Schema.Type<typeof addReleaseSchema>,
+) =>
   pipe(
-    TE.tryCatch(
-      () => addPostTransform.parseAsync(product),
-      () => "Incorrect product data. Please check the form.",
-    ),
-    TE.chain((body) =>
-      TE.tryCatch(
-        () =>
+    product,
+    ParseResult.decodeUnknown(addPostTransform),
+    ParseResult.mapError(() => "Error parsing product data."),
+    Effect.flatMap((body) =>
+      Effect.tryPromise({
+        try: () =>
           wcApi.post("products", body).then(() => {
             revalidateTag(CACHE_TAG.WC_CATEGORIES);
             return "Product added successfully.";
           }),
-        () => "Error adding product to WooCommerce. Please try again.",
-      ),
+        catch: () => "Error adding product to WooCommerce. Please try again.",
+      }),
     ),
-  )();
+  );
 
 export const getWcProductsFromDate = (date: string) =>
-  TE.tryCatch(
-    () =>
-      wcApi
-        .get("products", {
+  pipe(
+    Effect.tryPromise({
+      try: () =>
+        wcApi.get("products", {
           after: date,
           per_page: 100,
           status: "publish",
           stock_status: "instock",
-        })
-        .then((res) => {
-          const parsed = z.object({
-            data: wcProductListSchema,
-          });
-
-          return parsed.parse(res).data;
         }),
-    () => "Error fetching products from WooCommerce.",
-  )();
+      catch: () => "Error fetching products from WooCommerce.",
+    }),
+    ParseResult.decodeUnknown(wcProductListSchema),
+    ParseResult.mapError(() => "Error parsing products from WooCommerce."),
+  );
 
 export const getWcProducts = (page: number) =>
   pipe(
-    TE.tryCatch(
-      () =>
-        wcApi
-          .get("products", {
-            per_page: 10,
-            page,
-            status: "publish",
-            stock_status: "instock",
-          })
-          .then(parseToEither(wcProductResponseSchema)),
-      () => "Error fetching products from WooCommerce.",
-    ),
-    TE.chain(TE.fromEither),
-  )();
+    Effect.tryPromise({
+      try: () =>
+        wcApi.get("products", {
+          per_page: 10,
+          page,
+          status: "publish",
+          stock_status: "instock",
+        }),
+      catch: () => "Error fetching products from WooCommerce.",
+    }),
+    ParseResult.decodeUnknown(wcProductResponseSchema),
+    ParseResult.mapError(() => "Error parsing products from WooCommerce."),
+  );
