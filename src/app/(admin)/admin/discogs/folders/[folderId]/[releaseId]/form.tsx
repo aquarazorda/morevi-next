@@ -52,7 +52,7 @@ export default function AddReleaseForm({
   categoriesPromise,
 }: {
   data: Schema.Type<typeof releaseSchema>;
-  categoriesPromise: Promise<Categories>;
+  categoriesPromise: Promise<Either<Categories, unknown>>;
 }) {
   const router = useRouter();
   const pathname = usePathname();

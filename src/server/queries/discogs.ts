@@ -46,13 +46,16 @@ export const getReleases = (folderId: string) =>
   getDiscogs(
     `${foldersPath}/${folderId}/releases?sort=added&sort_order=desc&per_page=100`,
     folderReleasesSchema,
-  );
+  ).pipe(Effect.either, Effect.runPromise);
 
 export const getRelease = (releaseId: string) =>
-  getDiscogs(`/releases/${releaseId}`, releaseSchema);
+  getDiscogs(`/releases/${releaseId}`, releaseSchema).pipe(
+    Effect.either,
+    Effect.runPromise,
+  );
 
 export const getDiscogsSearch = (query: string) =>
   getDiscogs(
     `/database/search?type=release&per_page=50&query=${query}`,
     discogsSearchResultsSchema,
-  );
+  ).pipe(Effect.either, Effect.runPromise);

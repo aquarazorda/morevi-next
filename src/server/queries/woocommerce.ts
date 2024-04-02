@@ -42,19 +42,19 @@ export type Categories = S.Schema.Type<typeof categorySchema>[];
 
 export const getWcCategories = unstable_cache(
   () =>
-    Effect.runPromiseExit(
-      pipe(
-        Effect.tryPromise({
-          try: () =>
-            wcApi.get("products/categories", {
-              per_page: 100,
-              orderby: "count",
-              order: "desc",
-            }),
-          catch: (e) => e,
-        }),
-        S.decodeUnknown(categoryResponseSchema),
-      ),
+    pipe(
+      Effect.tryPromise({
+        try: () =>
+          wcApi.get("products/categories", {
+            per_page: 100,
+            orderby: "count",
+            order: "desc",
+          }),
+        catch: (e) => e,
+      }),
+      Effect.flatMap(S.decodeUnknown(categoryResponseSchema)),
+      Effect.either,
+      Effect.runPromise,
     ),
   ["getWcCategories"],
   { tags: [CACHE_TAG.WC_CATEGORIES], revalidate: 600 },

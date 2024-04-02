@@ -2,6 +2,7 @@ import { getRelease } from "~/server/queries/discogs";
 import AddReleaseForm from "./form";
 import { redirect } from "next/navigation";
 import { getWcCategories } from "~/server/queries/woocommerce";
+import { isLeft } from "effect/Either";
 
 export default async function FolderReleasePage({
   params,
@@ -9,7 +10,7 @@ export default async function FolderReleasePage({
   params: { folderId?: string; releaseId: string };
 }) {
   const data = await getRelease(params.releaseId);
-  if (!data)
+  if (!data || isLeft(data))
     redirect(
       params.folderId
         ? "/admin/discogs/folders/" + params.folderId
@@ -17,5 +18,7 @@ export default async function FolderReleasePage({
     );
   const categoriesPromise = getWcCategories();
 
-  return <AddReleaseForm data={data} categoriesPromise={categoriesPromise} />;
+  return (
+    <AddReleaseForm data={data.right} categoriesPromise={categoriesPromise} />
+  );
 }
