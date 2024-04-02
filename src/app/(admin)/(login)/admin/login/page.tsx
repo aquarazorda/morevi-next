@@ -17,11 +17,10 @@ export default function AdminLoginPage() {
     startTransition(async () => {
       const res = await login(null, formData);
       if (isRight(res)) {
-        console.log(res);
-        // redirect("/admin");
+        redirect("/admin");
       }
 
-      // setError(res.left);
+      setError(res.left);
     });
   };
 

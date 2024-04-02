@@ -115,7 +115,9 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={
-              pagination.pageCount > -1 ? !table.getCanNextPage() : !data.length
+              pagination?.pageCount > -1
+                ? !table.getCanNextPage()
+                : !data?.length
             }
           >
             Next
@@ -188,7 +190,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.previousPage()}
             disabled={
-              pagination.pageCount > -1
+              pagination?.pageCount > -1
                 ? !table.getCanPreviousPage()
                 : pagination.pagination?.pageIndex === 0
             }
@@ -200,7 +202,9 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={
-              pagination.pageCount > -1 ? !table.getCanNextPage() : !data.length
+              pagination?.pageCount > -1
+                ? !table.getCanNextPage()
+                : !data.length
             }
           >
             Next

@@ -48,26 +48,19 @@ export const getExistingUser = (username: string) =>
   );
 
 export const createSessionCookie = (session?: Session | null) =>
-  Effect.sync(
-    () =>
-      pipe(
-        Effect.try({
-          try: () => {
-            const sessionCookie = session
-              ? lucia.createSessionCookie(session.id)
-              : lucia.createBlankSessionCookie();
+  Effect.sync(() => {
+    try {
+      const sessionCookie = session
+        ? lucia.createSessionCookie(session.id)
+        : lucia.createBlankSessionCookie();
 
-            return cookies().set(
-              sessionCookie.name,
-              sessionCookie.value,
-              sessionCookie.attributes,
-            );
-          },
-          catch: () => "Error setting session cookie",
-        }),
-      ),
-    Effect.runPromise,
-  );
+      return cookies().set(
+        sessionCookie.name,
+        sessionCookie.value,
+        sessionCookie.attributes,
+      );
+    } catch (_) {}
+  });
 
 export const createSession = (userId: string) =>
   pipe(

@@ -8,13 +8,12 @@ import {
 import { releaseSchema } from "../schemas/discogs/release";
 import { discogsSearchResultsSchema } from "../schemas/discogs/search";
 import { pipe, Effect } from "effect";
-import { FetchError } from "~/lib/errors";
 import type * as S from "@effect/schema/Schema";
 import * as ParseResult from "@effect/schema/ParseResult";
 
 const foldersPath = "/users/MoreviTBS/collection/folders";
 
-export const getDiscogs = <A, I, R>(path: string, schema: S.Schema<A, I, R>) =>
+const getDiscogs = <A, I>(path: string, schema: S.Schema<A, I, never>) =>
   pipe(
     Effect.tryPromise({
       try: () =>
@@ -25,20 +24,23 @@ export const getDiscogs = <A, I, R>(path: string, schema: S.Schema<A, I, R>) =>
           next: {
             revalidate: 3600,
           },
-        }),
-      catch: (e) => new FetchError(e),
+        }).then((response) => response.json()),
+      catch: () => "Error fetching data",
     }),
-    ParseResult.decodeUnknown(schema),
+    Effect.flatMap(ParseResult.decodeUnknown(schema)),
+    Effect.mapError(() => "Error parsing data"),
   );
 
-export const getFolders = pipe(
-  getDiscogs(foldersPath, foldersResponseSchema),
-  Effect.catchAll(() =>
-    Effect.succeed(
-      [] as unknown as S.Schema.Type<typeof foldersResponseSchema>,
+export const getFolders = () =>
+  pipe(
+    getDiscogs(foldersPath, foldersResponseSchema),
+    Effect.catchAll(() =>
+      Effect.succeed(
+        [] as unknown as S.Schema.Type<typeof foldersResponseSchema>,
+      ),
     ),
-  ),
-);
+    Effect.runPromise,
+  );
 
 export const getReleases = (folderId: string) =>
   getDiscogs(

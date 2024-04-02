@@ -8,7 +8,13 @@ export const discogsFolderSchema = S.struct({
 
 export const foldersResponseSchema = S.struct({
   folders: S.array(discogsFolderSchema),
-});
+}).pipe(
+  S.transform(
+    S.array(discogsFolderSchema),
+    ({ folders }) => folders,
+    (folders) => ({ folders }),
+  ),
+);
 
 export const noteSchema = S.struct({
   field_id: S.number,
