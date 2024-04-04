@@ -38,7 +38,7 @@ const categoryResponseSchema = S.struct({
   ),
 );
 
-export type Categories = S.Schema.Type<typeof categorySchema>[];
+export type Categories = readonly S.Schema.Type<typeof categorySchema>[];
 
 export const getWcCategories = unstable_cache(
   () =>
@@ -113,20 +113,25 @@ const generateDescription = ({
 const addPostTransform = addReleaseSchema.pipe(
   S.transform(
     S.struct({
+      name: S.string,
       type: S.literal("simple"),
       status: S.literal("draft", "publish"),
       categories: S.array(S.struct({ id: S.number })),
       regular_price: S.optional(S.string),
       images: S.array(S.struct({ src: S.string })),
       short_description: S.string,
+      stock_quantity: S.number,
+      manage_stock: S.literal(true),
     }),
-    ({ category, image, price, title, status, ...rest }) => ({
+    ({ category, image, price, title, status, stock_quantity, ...rest }) => ({
       type: "simple" as const,
       name: title,
       status: status === "draft" ? ("draft" as const) : ("publish" as const),
       categories: category.map((id) => ({ id })),
       images: [{ src: image }],
       regular_price: price,
+      stock_quantity,
+      manage_stock: true,
       short_description: generateDescription(rest),
     }),
     identity,
@@ -140,6 +145,7 @@ export const addProductToWc = (
     product,
     ParseResult.decodeUnknown(addPostTransform),
     ParseResult.mapError(() => "Error parsing product data."),
+    Effect.tap(Effect.log),
     Effect.flatMap((body) =>
       Effect.tryPromise({
         try: () =>

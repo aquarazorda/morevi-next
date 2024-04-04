@@ -20,7 +20,7 @@ export const addReleaseSchema = S.struct({
       }),
     ),
   ),
-  stock: S.number,
+  stock_quantity: S.number,
   condition: S.literal(
     "Mint (M)",
     "Near Mint (NM or M-)",

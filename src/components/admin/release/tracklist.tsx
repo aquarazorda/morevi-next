@@ -1,7 +1,7 @@
+import type { Schema } from "@effect/schema/Schema";
 import { CopyIcon } from "lucide-react";
 import { Fragment } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import type { z } from "zod";
 import { Button } from "~/components/ui/button";
 import {
   FormField,
@@ -15,7 +15,7 @@ import type { addReleaseSchema } from "~/server/schemas/discogs/release";
 
 export default function Tracklist() {
   const { control, register } =
-    useFormContext<z.infer<typeof addReleaseSchema>>();
+    useFormContext<Schema.Type<typeof addReleaseSchema>>();
   const { fields, remove, append } = useFieldArray({
     control,
     name: "tracks",

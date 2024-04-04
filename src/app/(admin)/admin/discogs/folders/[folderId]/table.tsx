@@ -1,8 +1,8 @@
 "use client";
 
+import { type Schema } from "@effect/schema/Schema";
 import { type ColumnDef } from "@tanstack/react-table";
 import { usePathname, useRouter } from "next/navigation";
-import { type z } from "zod";
 import { DataTable } from "~/components/ui/data-table";
 import {
   getNotesAsSearchParams,
@@ -14,11 +14,11 @@ import {
   type basicInformationSchema,
 } from "~/server/schemas/discogs/folders";
 
-export const releasesTableColumns: ColumnDef<
-  z.infer<typeof basicInformationSchema> & {
-    notes?: z.infer<typeof noteSchema>[];
-  }
->[] = [
+type Data = Schema.Type<typeof basicInformationSchema> & {
+  notes?: readonly Schema.Type<typeof noteSchema>[];
+};
+
+export const releasesTableColumns: ColumnDef<Data>[] = [
   {
     header: "Thumbnail",
     accessorKey: "thumb",
@@ -46,28 +46,22 @@ export const releasesTableColumns: ColumnDef<
   {
     header: "Label",
     accessorFn: ({ labels }) =>
-      removeNumberInParentheses(labels[0]?.name) +
-      " (" +
-      labels[0]?.catno +
-      ")",
+      labels[0]
+        ? removeNumberInParentheses(labels[0]?.name) +
+          " (" +
+          labels[0]?.catno +
+          ")"
+        : "",
   },
 ];
 
-export const ReleasesTable = ({
-  data,
-}: {
-  data: Array<
-    z.infer<typeof basicInformationSchema> & {
-      notes?: z.infer<typeof noteSchema>[];
-    }
-  >;
-}) => {
+export const ReleasesTable = ({ data }: { data: readonly Data[] }) => {
   const pathname = usePathname();
   const router = useRouter();
 
   return (
     <DataTable
-      data={data}
+      data={data as Data[]}
       columns={releasesTableColumns}
       onRowClick={({ id, notes }) =>
         router.push(pathname + "/" + id + getNotesAsSearchParams(notes))

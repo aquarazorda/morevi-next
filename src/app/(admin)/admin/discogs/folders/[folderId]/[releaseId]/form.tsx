@@ -34,7 +34,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useTransition } from "react";
 import { toast } from "sonner";
 import type { Schema } from "@effect/schema/Schema";
-import { Either, pipe } from "effect";
+import type { Either as EitherType } from "effect/Either";
+import { pipe, Either } from "effect";
 
 export default function AddReleaseForm({
   data: {
@@ -52,7 +53,7 @@ export default function AddReleaseForm({
   categoriesPromise,
 }: {
   data: Schema.Type<typeof releaseSchema>;
-  categoriesPromise: Promise<Either<Categories, unknown>>;
+  categoriesPromise: Promise<EitherType<Categories, unknown>>;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -71,7 +72,9 @@ export default function AddReleaseForm({
       year,
       status: "active" as const,
       price: search.get("price") ?? "0.00",
-      stock: search.get("quantity") ? Number(search.get("quantity")) : 1,
+      stock_quantity: search.get("quantity")
+        ? Number(search.get("quantity"))
+        : 1,
       condition:
         (search.get(
           "condition",
@@ -198,7 +201,7 @@ export default function AddReleaseForm({
               <div className="flex gap-2">
                 <FormField
                   control={form.control}
-                  name="stock"
+                  name="stock_quantity"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Stock</FormLabel>
@@ -241,14 +244,14 @@ export default function AddReleaseForm({
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Condition</FormLabel>
+                      <FormLabel>Status</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select condition" />
+                            <SelectValue placeholder="Select Status" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

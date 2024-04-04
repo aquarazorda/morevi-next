@@ -61,7 +61,7 @@ const parsePriceAndQuantity = (
 };
 
 export const getNotesAsSearchParams = (
-  notes?: S.Schema.Type<typeof noteSchema>[],
+  notes?: readonly S.Schema.Type<typeof noteSchema>[],
 ) => {
   if (!notes) return "";
 

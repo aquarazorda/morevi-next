@@ -1,6 +1,7 @@
 import { getReleases } from "~/server/queries/discogs";
 import { ReleasesTable } from "./table";
 import { redirect } from "next/navigation";
+import { isLeft } from "effect/Either";
 
 export default async function ReleasesPage({
   params: { folderId },
@@ -8,7 +9,7 @@ export default async function ReleasesPage({
   params: { folderId: string };
 }) {
   const data = await getReleases(folderId);
-  if (!data) redirect("/admin/discogs/folders");
+  if (!data || isLeft(data)) redirect("/admin/discogs/folders");
 
-  return <ReleasesTable data={data.releases} />;
+  return <ReleasesTable data={data.right.releases} />;
 }
