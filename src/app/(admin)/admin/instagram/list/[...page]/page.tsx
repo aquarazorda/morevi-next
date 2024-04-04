@@ -2,7 +2,7 @@
 
 import { getWcProducts } from "~/server/queries/woocommerce";
 import InstagramListTable from "./table";
-import { isLeft } from "fp-ts/lib/Either";
+import { isLeft } from "effect/Either";
 
 export default async function InstagramListPage({
   params,
@@ -13,6 +13,9 @@ export default async function InstagramListPage({
   const data = await getWcProducts(page);
 
   return (
-    <InstagramListTable page={page} data={isLeft(data) ? [] : data.right} />
+    <InstagramListTable
+      page={page}
+      data={isLeft(data) ? { data: [] } : data.right}
+    />
   );
 }

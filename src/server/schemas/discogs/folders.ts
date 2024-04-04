@@ -1,58 +1,71 @@
-import { z } from "zod";
+import * as S from "@effect/schema/Schema";
 
-export const discogsFolderSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  count: z.number(),
+export const discogsFolderSchema = S.struct({
+  id: S.number,
+  name: S.string,
+  count: S.number,
 });
 
-export const foldersResponseSchema = z.object({
-  folders: z.array(discogsFolderSchema),
+export const foldersResponseSchema = S.struct({
+  folders: S.array(discogsFolderSchema),
+}).pipe(
+  S.transform(
+    S.array(discogsFolderSchema),
+    ({ folders }) => folders,
+    (folders) => ({ folders }),
+  ),
+);
+
+export const noteSchema = S.struct({
+  field_id: S.number,
+  value: S.string,
 });
 
-export const noteSchema = z.object({
-  field_id: z.number(),
-  value: z.string(),
-});
-
-export const basicInformationSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-  artists: z.array(
-    z.object({
-      name: z.string(),
+export const basicInformationSchema = S.struct({
+  id: S.number,
+  title: S.string,
+  artists: S.array(
+    S.struct({
+      name: S.string,
     }),
   ),
-  thumb: z.string().optional(),
-  cover_image: z.string().optional(),
-  year: z.number().optional(),
-  genres: z.array(z.string()).optional(),
-  styles: z.array(z.string()).optional(),
-  labels: z.array(
-    z.object({
-      id: z.number(),
-      name: z.string(),
-      catno: z.string(),
+  thumb: S.optional(S.string),
+  cover_image: S.optional(S.string),
+  year: S.optional(S.number),
+  genres: S.optional(S.array(S.string)),
+  styles: S.optional(S.array(S.string)),
+  labels: S.array(
+    S.struct({
+      id: S.number,
+      name: S.string,
+      catno: S.string,
     }),
   ),
 });
 
-export const folderReleasesSchema = z.object({
-  pagination: z.object({
-    page: z.number(),
-    pages: z.number(),
-    per_page: z.number(),
-    items: z.number(),
+const releaseSchema = S.struct({
+  basic_information: basicInformationSchema,
+  notes: S.optional(S.array(noteSchema)),
+});
+
+export const folderReleasesSchema = S.struct({
+  pagination: S.struct({
+    page: S.number,
+    pages: S.number,
+    per_page: S.number,
+    items: S.number,
   }),
-  releases: z.array(
-    z
-      .object({
-        basic_information: basicInformationSchema,
-        notes: z.array(noteSchema).optional(),
-      })
-      .transform(({ basic_information, notes }) => ({
-        ...basic_information,
-        notes,
-      })),
+  releases: S.array(
+    releaseSchema.pipe(
+      S.transform(
+        S.struct({
+          ...basicInformationSchema.fields,
+          notes: S.optional(S.array(noteSchema)),
+        }),
+        ({ basic_information, notes }) =>
+          ({ ...basic_information, notes }) as const,
+        ({ notes, ...rest }) => ({ basic_information: rest, notes }),
+      ),
+    ),
   ),
 });

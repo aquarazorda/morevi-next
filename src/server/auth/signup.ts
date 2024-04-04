@@ -11,42 +11,43 @@ import {
   testPassword,
   testUsername,
 } from "./utils";
-import { flow, pipe } from "fp-ts/lib/function";
-import * as TE from "fp-ts/lib/TaskEither";
-import { fromPromiseFn } from "~/lib/utils";
+import { Effect, flow, pipe } from "effect";
 
 const getHashedPassword = flow(
   testPassword,
-  TE.fromEither,
-  TE.chain((password) =>
-    TE.tryCatch(
-      () => new Argon2id().hash(password),
-      () => "Error hashing password",
-    ),
+  Effect.flatMap((password) =>
+    Effect.tryPromise({
+      try: () => new Argon2id().hash(password),
+      catch: () => "Error hashing password",
+    }),
   ),
 );
 
-export async function signup(_: any, formData: FormData) {
-  return pipe(
-    TE.fromEither(testUsername(formData.get("username") as string)),
-    TE.bindTo("username"),
-    TE.bind("hashed_password", () =>
+const signup_ = (_: any, formData: FormData) =>
+  pipe(
+    testUsername(formData.get("username") as string),
+    Effect.bindTo("username"),
+    Effect.bind("hashed_password", () =>
       getHashedPassword(formData.get("password") as string),
     ),
-    TE.chainFirst(({ username }) =>
+    Effect.tap(({ username }) =>
       pipe(
         getExistingUser(username),
-        TE.chainFirst((existingUser) =>
+        Effect.tap((existingUser) =>
           existingUser
-            ? TE.left("User already exists")
-            : TE.right(existingUser),
+            ? Effect.fail("User already exists")
+            : Effect.succeed(existingUser),
         ),
       ),
     ),
-    TE.bind("id", () => TE.right(generateId(15))),
-    TE.chainFirstTaskK(
-      fromPromiseFn((values) => db.insert(user).values(values)),
+    Effect.bind("id", () => Effect.succeed(generateId(15))),
+    Effect.tap((values) =>
+      Effect.tryPromise({
+        try: () => db.insert(user).values(values),
+        catch: () => "Error inserting user",
+      }),
     ),
-    TE.chain(({ id }) => createSession(id)),
-  )();
-}
+    Effect.flatMap(({ id }) => createSession(id)),
+  );
+
+export const signup = flow(signup_, Effect.either, Effect.runPromise);

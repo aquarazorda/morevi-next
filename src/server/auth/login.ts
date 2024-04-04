@@ -2,7 +2,6 @@
 
 import { Argon2id } from "oslo/password";
 import { redirect } from "next/navigation";
-import { pipe } from "fp-ts/lib/function";
 import {
   createSession,
   createSessionCookie,
@@ -11,54 +10,52 @@ import {
   testUsername,
   validateRequest,
 } from "./utils";
-import * as TE from "fp-ts/lib/TaskEither";
 import { lucia } from "./lucia";
+import { Effect, pipe } from "effect";
 
 const validatePassword = (password: string, hashed_password: string) =>
   pipe(
-    TE.tryCatch(
-      () => new Argon2id().verify(hashed_password, password),
-      () => "Error verifying password",
-    ),
-    TE.flatMapNullable(
-      () => true,
-      () => "Invalid password",
-    ),
+    Effect.tryPromise({
+      try: () => new Argon2id().verify(hashed_password, password),
+      catch: () => "Error verifying password",
+    }),
+    Effect.flatMap(Effect.fromNullable),
+    Effect.mapError(() => "Invalid password"),
   );
 
-export async function login(_: any, formData: FormData) {
-  return await pipe(
+const login_ = (_: any, formData: FormData) =>
+  pipe(
     testUsername(formData.get("username") as string),
-    TE.fromEither,
-    TE.bindTo("username"),
-    TE.bind("password", () =>
-      TE.fromEither(testPassword(formData.get("password") as string)),
+    Effect.bindTo("username"),
+    Effect.bind("password", () =>
+      testPassword(formData.get("password") as string),
     ),
-    TE.bind("existingUser", ({ username }) =>
+    Effect.bind("existingUser", ({ username }) =>
       pipe(
         getExistingUser(username),
-        TE.flatMapNullable(
-          (existingUser) => existingUser,
-          () => "User doesn't exist",
-        ),
+        Effect.flatMap(Effect.fromNullable),
+        Effect.mapError(() => "User doesn't exist"),
       ),
     ),
-    TE.tap(({ password, existingUser }) =>
+    Effect.tap(({ password, existingUser }) =>
       validatePassword(password, existingUser.hashed_password),
     ),
-    TE.chain(({ existingUser }) => createSession(existingUser.id)),
-  )();
-}
+    Effect.flatMap(({ existingUser }) => createSession(existingUser.id)),
+  );
+
+export const login = (_: any, formData: FormData) =>
+  pipe(login_(_, formData), Effect.either, Effect.runPromise);
 
 export async function logout() {
-  return await pipe(
-    validateRequest,
-    TE.chainFirstTaskK(
-      ({ session }) =>
-        () =>
-          lucia.invalidateSession(session.id),
+  return pipe(
+    validateRequest(),
+    Effect.tap(({ session }) =>
+      Effect.tryPromise({
+        try: () => lucia.invalidateSession(session.id),
+        catch: () => "Error invalidating session",
+      }),
     ),
-    TE.tap(() => TE.fromIO(createSessionCookie)),
-    TE.tap(() => TE.fromIO(() => redirect("/"))),
-  )();
+    Effect.tap(() => createSessionCookie()),
+    Effect.tap(() => Effect.sync(() => redirect("/"))),
+  );
 }

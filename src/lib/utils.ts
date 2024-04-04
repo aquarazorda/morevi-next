@@ -1,10 +1,9 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { type ZodSchema, type z } from "zod";
 import { type noteSchema } from "~/server/schemas/discogs/folders";
-import { match } from "ts-pattern";
 import { toast } from "sonner";
-import { left, right } from "fp-ts/lib/Either";
+import type * as S from "@effect/schema/Schema";
+import { Match } from "effect";
 
 export const fromPromiseFn =
   <T, U>(promiseFn: (args: U) => Promise<T>) =>
@@ -22,25 +21,17 @@ export function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function removeNumberInParentheses<T extends string>(str?: T) {
+export function removeNumberInParentheses<T extends string>(str: T) {
   return str?.replace(/\(?\d+\)?/g, "");
 }
 
-export function getReleaseTitle(title: string, artists: { name: string }[]) {
+export function getReleaseTitle(
+  title: string,
+  artists: readonly { readonly name: string }[],
+) {
   // we need to replace all "(n)" with empty string in artist name
   return `${artists.map((artist) => removeNumberInParentheses(artist.name)).join(", ")} - ${title}`;
 }
-
-export const parseToEither =
-  <T>(schema: ZodSchema<T>) =>
-  (data: unknown) => {
-    const result = schema.safeParse(data);
-    if (result.success) {
-      return right(result.data);
-    }
-
-    return left(result.error.flatten().formErrors.join(" | "));
-  };
 
 export async function copyToClipboard(text: string) {
   try {
@@ -70,22 +61,22 @@ const parsePriceAndQuantity = (
 };
 
 export const getNotesAsSearchParams = (
-  notes?: z.infer<typeof noteSchema>[],
+  notes?: readonly S.Schema.Type<typeof noteSchema>[],
 ) => {
   if (!notes) return "";
 
   const search = new URLSearchParams();
+
   notes.forEach((note) => {
-    match(note.field_id)
-      .with(1, () => search.append("condition", note.value))
-      .with(3, () => {
+    Match.value(note.field_id).pipe(
+      Match.when(1, () => () => search.append("condition", note.value)),
+      Match.when(3, () => {
         const { price, quantity } = parsePriceAndQuantity(note.value);
         if (price) search.append("price", String(price - 0.01));
         if (quantity) search.append("quantity", String(quantity));
-      })
-      .otherwise(() => {
-        undefined;
-      });
+      }),
+      Match.orElse(() => undefined),
+    );
   });
 
   return search.size > 0 ? "?" + search.toString() : "";

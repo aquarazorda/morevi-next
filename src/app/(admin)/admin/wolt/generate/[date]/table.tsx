@@ -1,13 +1,13 @@
 "use client";
 
+import { type Schema } from "@effect/schema/Schema";
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { type z } from "zod";
 import { Checkbox } from "~/components/ui/checkbox";
 import { DataTable } from "~/components/ui/data-table";
 import { type wcProductSchema } from "~/server/schemas/woocommerce/product";
 
-const columns: ColumnDef<z.infer<typeof wcProductSchema>>[] = [
+const columns: ColumnDef<Schema.Type<typeof wcProductSchema>>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -49,7 +49,7 @@ const columns: ColumnDef<z.infer<typeof wcProductSchema>>[] = [
 export default function WoltGenerateProductTable({
   data,
 }: {
-  data: z.infer<typeof wcProductSchema>[];
+  data: Schema.Type<typeof wcProductSchema>[];
 }) {
   return <DataTable columns={columns} data={data} />;
 }

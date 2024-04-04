@@ -1,8 +1,8 @@
 "use client";
 
+import type { Schema } from "@effect/schema/Schema";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import type { z } from "zod";
 import {
   FormControl,
   FormField,
@@ -20,9 +20,9 @@ import {
 export default function ImageSelector({
   images,
 }: {
-  images: z.infer<typeof releaseImages>;
+  images: Schema.Type<typeof releaseImages>;
 }) {
-  const form = useFormContext<z.infer<typeof addReleaseSchema>>();
+  const form = useFormContext<Schema.Type<typeof addReleaseSchema>>();
   const [imageUrl, setImageUrl] = useState(form.getValues("image"));
 
   useEffect(() => {

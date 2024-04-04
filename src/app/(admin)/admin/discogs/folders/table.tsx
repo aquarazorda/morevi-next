@@ -1,12 +1,14 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import type { z } from "zod";
 import type { discogsFolderSchema } from "~/server/schemas/discogs/folders";
 import { DataTable } from "~/components/ui/data-table";
+import type { Schema } from "@effect/schema/Schema";
 import { useRouter } from "next/navigation";
 
-export const folderColumns: ColumnDef<z.infer<typeof discogsFolderSchema>>[] = [
+type Data = Schema.Type<typeof discogsFolderSchema>;
+
+export const folderColumns: ColumnDef<Data>[] = [
   {
     accessorKey: "name",
     header: "Name",
@@ -14,16 +16,12 @@ export const folderColumns: ColumnDef<z.infer<typeof discogsFolderSchema>>[] = [
   { accessorKey: "count", header: "Count" },
 ];
 
-export const FoldersTable = ({
-  folders,
-}: {
-  folders: z.infer<typeof discogsFolderSchema>[];
-}) => {
+export const FoldersTable = ({ folders }: { folders: readonly Data[] }) => {
   const router = useRouter();
 
   return (
     <DataTable
-      data={folders}
+      data={folders as Data[]}
       columns={folderColumns}
       onRowClick={({ id }) => router.push("/admin/discogs/folders/" + id)}
     />
