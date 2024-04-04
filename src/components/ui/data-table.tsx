@@ -90,41 +90,31 @@ export function DataTable<TData, TValue>({
           onChange={(event) => table.setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
-        {pagination?.pageCount !== undefined && (
-          <div className="ml-auto flex items-center justify-end space-x-2 py-4">
-            {pagination.pageCount > -1 && (
-              <span className="flex items-center gap-1">
-                <div>Page</div>
-                {table.getState().pagination.pageIndex + 1} of{" "}
-                {table.getPageCount().toLocaleString()}
-              </span>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={
-                pagination.pageCount > -1
-                  ? !table.getCanPreviousPage()
-                  : pagination.pagination?.pageIndex === 0
-              }
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={
-                pagination.pageCount > -1
-                  ? !table.getCanNextPage()
-                  : !data?.length
-              }
-            >
-              Next
-            </Button>
-          </div>
-        )}
+        <div className="ml-auto flex items-center justify-end space-x-2 py-4">
+          {pagination.pageCount > -1 && (
+            <span className="flex items-center gap-1">
+              <div>Page</div>
+              {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount().toLocaleString()}
+            </span>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
