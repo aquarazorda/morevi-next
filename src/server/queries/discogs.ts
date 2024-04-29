@@ -21,9 +21,7 @@ const getDiscogs = <A, I>(path: string, schema: S.Schema<A, I, never>) =>
           headers: {
             Authorization: `Discogs token=${env.DISCOGS_TOKEN}`,
           },
-          next: {
-            revalidate: 3600,
-          },
+          cache: "no-cache",
         }).then((response) => response.json()),
       catch: () => "Error fetching data",
     }),
