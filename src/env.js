@@ -13,6 +13,8 @@ export const env = createEnv({
     WP_HOST: z.string().url(),
     WP_KEY: z.string(),
     WP_SECRET: z.string(),
+    SLSK_USER: z.string(),
+    SLSK_PASS: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -38,6 +40,8 @@ export const env = createEnv({
     WP_HOST: process.env.WP_HOST,
     WP_KEY: process.env.WP_KEY,
     WP_SECRET: process.env.WP_SECRET,
+    SLSK_USER: process.env.SLSK_USER,
+    SLSK_PASS: process.env.SLSK_PASS,
     NODE_ENV: process.env.NODE_ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
