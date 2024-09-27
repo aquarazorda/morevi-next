@@ -1,5 +1,10 @@
+"use server";
+
 import { Effect } from "effect";
+import { Schema } from "@effect/schema";
 import { google } from "googleapis";
+import { env } from "~/env";
+import { cookies } from "next/headers";
 
 // Define the interface for a playlist item
 interface PlaylistItem {
@@ -9,10 +14,32 @@ interface PlaylistItem {
   thumbnailUrl: string;
 }
 
-// Create a YouTube client
+// Create a new OAuth2 client
+const oauth2Client = new google.auth.OAuth2(
+  env.YOUTUBE_CLIENT_ID,
+  env.YOUTUBE_CLIENT_SECRET,
+  env.YOUTUBE_REDIRECT_URI,
+);
+
+// Function to set credentials (call this before using the YouTube API)
+const setCredentials = Effect.gen(function* () {
+  const accessToken = cookies().get("youtube_access_token")?.value;
+  const refreshToken = cookies().get("youtube_refresh_token")?.value;
+
+  if (!accessToken || !refreshToken) {
+    yield* Effect.fail(new Error("YouTube tokens not found in cookies"));
+  }
+
+  oauth2Client.setCredentials({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+});
+
+// Create a YouTube client with OAuth2 authentication
 const youtube = google.youtube({
   version: "v3",
-  auth: process.env.YOUTUBE_API_KEY, // Make sure to set this in your .env file
+  auth: oauth2Client,
 });
 
 // Function to extract playlist ID from URL
@@ -35,9 +62,9 @@ const fetchPlaylistItems = (playlistId: string, pageToken?: string) =>
     }),
   );
 
-// Main function to get playlist items
-export const getPlaylistItems = (playlistUrl: string) =>
+const getPlaylistItems = (playlistUrl: string) =>
   Effect.gen(function* () {
+    yield* setCredentials;
     const playlistId = yield* extractPlaylistId(playlistUrl);
     let items: PlaylistItem[] = [];
     let nextPageToken: string | undefined;
@@ -53,13 +80,21 @@ export const getPlaylistItems = (playlistUrl: string) =>
         thumbnailUrl: item.snippet?.thumbnails?.default?.url ?? "",
       }));
       items = [...items, ...newItems];
-      nextPageToken = response.data.nextPageToken ?? undefined;
+      // nextPageToken = response.data.nextPageToken ?? undefined;
     } while (nextPageToken);
 
     return items;
   });
 
-// Usage example (this would typically be in another file)
-// const playlistUrl = 'https://www.youtube.com/playlist?list=PLxxxxxxxxxxxxxxx';
-// const program = Effect.runPromise(getPlaylistItems(playlistUrl));
-// program.then(console.log).catch(console.error);
+const FormDataSchema = Schema.Struct({
+  "youtube-playlist-url": Schema.String,
+});
+
+export const getPlaylistItemsFormData = (formData: FormData) =>
+  Effect.gen(function* () {
+    const validatedData = yield* Schema.decodeUnknownEither(FormDataSchema)(
+      Object.fromEntries(formData),
+    );
+    const playlistUrl = validatedData["youtube-playlist-url"];
+    return yield* getPlaylistItems(playlistUrl);
+  }).pipe(Effect.either, Effect.runPromise);

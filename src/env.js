@@ -15,6 +15,10 @@ export const env = createEnv({
     WP_SECRET: z.string(),
     SLSK_USER: z.string(),
     SLSK_PASS: z.string(),
+    YOUTUBE_API_KEY: z.string(),
+    YOUTUBE_CLIENT_ID: z.string(),
+    YOUTUBE_CLIENT_SECRET: z.string(),
+    YOUTUBE_REDIRECT_URI: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -42,6 +46,10 @@ export const env = createEnv({
     WP_SECRET: process.env.WP_SECRET,
     SLSK_USER: process.env.SLSK_USER,
     SLSK_PASS: process.env.SLSK_PASS,
+    YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
+    YOUTUBE_CLIENT_ID: process.env.YOUTUBE_CLIENT_ID,
+    YOUTUBE_CLIENT_SECRET: process.env.YOUTUBE_CLIENT_SECRET,
+    YOUTUBE_REDIRECT_URI: process.env.YOUTUBE_REDIRECT_URI,
     NODE_ENV: process.env.NODE_ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
