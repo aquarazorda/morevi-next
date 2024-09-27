@@ -1,13 +1,13 @@
 "use server";
 
-import { getPlaylistItemsFormData } from "~/server/digg/youtube";
+import { $getPlaylistItems } from "~/server/digg/youtube/playlist-items";
 
 export default async function AdminDigPage() {
   return (
     <form
       action={async (formData) => {
         "use server";
-        const result = await getPlaylistItemsFormData(formData);
+        const result = await $getPlaylistItems(formData);
 
         console.log(result);
       }}
