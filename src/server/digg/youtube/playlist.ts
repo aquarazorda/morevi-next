@@ -1,8 +1,7 @@
 import { Schema } from "@effect/schema";
 import { Effect } from "effect";
 import { unstable_cache } from "next/cache";
-import { getYoutubeChannelId } from "~/server/auth/youtube-oauth";
-import { youtube } from "~/server/digg/youtube";
+import { getYoutubeChannelId, youtube } from "~/server/auth/youtube-oauth";
 import { runYoutubeAuthEffect } from "~/server/digg/youtube/auth-middleware";
 
 const PlaylistInfoSchema = Schema.Struct({
@@ -11,6 +10,7 @@ const PlaylistInfoSchema = Schema.Struct({
   description: Schema.String,
   thumbnailUrl: Schema.String,
   itemCount: Schema.Number,
+  publishedAt: Schema.String, // Add this line
 });
 
 type PlaylistInfo = Schema.Schema.Type<typeof PlaylistInfoSchema>;
@@ -40,6 +40,7 @@ export const getUserPlaylists = Effect.gen(function* () {
           description: item.snippet?.description ?? "",
           thumbnailUrl: item.snippet?.thumbnails?.default?.url ?? "",
           itemCount: item.contentDetails?.itemCount ?? 0,
+          publishedAt: item.snippet?.publishedAt ?? "",
         }),
     );
     playlists = [...playlists, ...newPlaylists];

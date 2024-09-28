@@ -3,11 +3,16 @@ import { env } from "~/env";
 import { Effect } from "effect";
 import { setYoutubeCredentials } from "~/server/digg/youtube";
 
-const oauth2Client = new google.auth.OAuth2(
+export const oauth2Client = new google.auth.OAuth2(
   env.YOUTUBE_CLIENT_ID,
   env.YOUTUBE_CLIENT_SECRET,
   env.YOUTUBE_REDIRECT_URI,
 );
+
+export const youtube = google.youtube({
+  version: "v3",
+  auth: oauth2Client,
+});
 
 const scopes = ["https://www.googleapis.com/auth/youtube.readonly"];
 

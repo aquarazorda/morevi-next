@@ -1,6 +1,6 @@
 import { Schema } from "@effect/schema";
 import { Effect } from "effect";
-import { youtube } from "~/server/digg/youtube";
+import { youtube } from "~/server/auth/youtube-oauth";
 import { runYoutubeAuthEffect } from "~/server/digg/youtube/auth-middleware";
 
 const PlaylistItemSchema = Schema.Struct({

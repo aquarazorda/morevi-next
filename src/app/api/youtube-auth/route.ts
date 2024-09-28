@@ -21,7 +21,7 @@ const setCookie = (
     });
   });
 
-export const GET = (request: NextRequest) =>
+export const GET = async (request: NextRequest) =>
   Effect.gen(function* () {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get("code");
@@ -71,4 +71,5 @@ export const GET = (request: NextRequest) =>
         NextResponse.redirect(new URL("/admin/digg", request.url)),
       ),
     ),
+    Effect.runPromise,
   );

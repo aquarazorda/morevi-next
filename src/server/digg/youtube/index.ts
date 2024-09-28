@@ -1,13 +1,6 @@
 import { Effect } from "effect";
-import { google } from "googleapis";
-import { env } from "~/env";
 import { cookies } from "next/headers";
-
-const oauth2Client = new google.auth.OAuth2(
-  env.YOUTUBE_CLIENT_ID,
-  env.YOUTUBE_CLIENT_SECRET,
-  env.YOUTUBE_REDIRECT_URI,
-);
+import { oauth2Client } from "~/server/auth/youtube-oauth";
 
 class NoYoutubeCredentialsError {
   readonly _tag = "NoYoutubeCredentialsError";
@@ -32,8 +25,3 @@ export const setYoutubeCredentials = (tokens?: {
       refresh_token: refreshToken,
     });
   });
-
-export const youtube = google.youtube({
-  version: "v3",
-  auth: oauth2Client,
-});
