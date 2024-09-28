@@ -1,6 +1,7 @@
 import { Schema } from "@effect/schema";
 import { Effect } from "effect";
-import { setYoutubeCredentials, youtube } from "~/server/digg/youtube";
+import { youtube } from "~/server/digg/youtube";
+import { runYoutubeAuthEffect } from "~/server/digg/youtube/auth-middleware";
 
 const PlaylistInfoSchema = Schema.Struct({
   id: Schema.String,
@@ -22,8 +23,7 @@ const fetchUserPlaylists = (pageToken?: string) =>
     }),
   );
 
-const getUserPlaylists = Effect.gen(function* () {
-  yield* setYoutubeCredentials;
+export const getUserPlaylists = Effect.gen(function* () {
   let playlists: PlaylistInfo[] = [];
   let nextPageToken: string | undefined;
 
@@ -47,5 +47,4 @@ const getUserPlaylists = Effect.gen(function* () {
   return playlists;
 });
 
-export const $getUserPlaylists = () =>
-  getUserPlaylists.pipe(Effect.either, Effect.runPromise);
+export const $getUserPlaylists = () => runYoutubeAuthEffect(getUserPlaylists);

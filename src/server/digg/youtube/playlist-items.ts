@@ -1,6 +1,7 @@
 import { Schema } from "@effect/schema";
 import { Effect } from "effect";
-import { setYoutubeCredentials, youtube } from "~/server/digg/youtube";
+import { youtube } from "~/server/digg/youtube";
+import { runYoutubeAuthEffect } from "~/server/digg/youtube/auth-middleware";
 
 const PlaylistItemSchema = Schema.Struct({
   id: Schema.String,
@@ -30,9 +31,8 @@ const fetchPlaylistItems = (playlistId: string, pageToken?: string) =>
     }),
   );
 
-export const getPlaylistItems = (playlistUrl: string) =>
+const getPlaylistItems = (playlistUrl: string) =>
   Effect.gen(function* () {
-    yield* setYoutubeCredentials;
     const playlistId = yield* extractPlaylistId(playlistUrl);
     let items: PlaylistItem[] = [];
     let nextPageToken: string | undefined;
@@ -62,11 +62,13 @@ const FormDataSchema = Schema.Struct({
   "youtube-playlist-url": Schema.String,
 });
 
-export const $getPlaylistItems = (formData: FormData) =>
-  Effect.gen(function* () {
-    const validatedData = yield* Schema.decodeUnknownEither(FormDataSchema)(
-      Object.fromEntries(formData),
-    );
-    const playlistUrl = validatedData["youtube-playlist-url"];
-    return yield* getPlaylistItems(playlistUrl);
-  }).pipe(Effect.either, Effect.runPromise);
+export const $getPlaylistItems = async (formData: FormData) =>
+  runYoutubeAuthEffect(
+    Effect.gen(function* () {
+      const validatedData = yield* Schema.decodeUnknownEither(FormDataSchema)(
+        Object.fromEntries(formData),
+      );
+      const playlistUrl = validatedData["youtube-playlist-url"];
+      return yield* getPlaylistItems(playlistUrl);
+    }),
+  );

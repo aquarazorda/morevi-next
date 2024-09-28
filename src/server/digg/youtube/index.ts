@@ -1,5 +1,3 @@
-"use server";
-
 import { Effect } from "effect";
 import { google } from "googleapis";
 import { env } from "~/env";
