@@ -1,5 +1,4 @@
 import { Effect } from "effect";
-import { redirect } from "next/navigation";
 import { type NextRequest, NextResponse } from "next/server";
 import {
   getAuthUrl,
@@ -22,8 +21,7 @@ const setCookie = (
     });
   });
 
-// Main handler function
-const handleRequest = (request: NextRequest) =>
+export const GET = (request: NextRequest) =>
   Effect.gen(function* () {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get("code");
@@ -33,7 +31,7 @@ const handleRequest = (request: NextRequest) =>
       return NextResponse.redirect(authUrl);
     }
 
-    const tokens = yield* Effect.promise(() => getTokens(code));
+    const tokens = yield* Effect.tryPromise(() => getTokens(code));
     const access_token = yield* Effect.fromNullable(tokens.access_token);
     const refresh_token = yield* Effect.fromNullable(tokens.refresh_token);
 
@@ -66,13 +64,11 @@ const handleRequest = (request: NextRequest) =>
     );
 
     return response;
-  });
-
-// Export the GET function
-export async function GET(request: NextRequest) {
-  return Effect.runPromise(
-    handleRequest(request).pipe(
-      Effect.catchAll(() => Effect.succeed(redirect("/admin/digg"))),
+  }).pipe(
+    Effect.tapError(Effect.logError),
+    Effect.catchAll(() =>
+      Effect.succeed(
+        NextResponse.redirect(new URL("/admin/digg", request.url)),
+      ),
     ),
   );
-}

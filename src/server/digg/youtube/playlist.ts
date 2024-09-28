@@ -1,5 +1,7 @@
 import { Schema } from "@effect/schema";
 import { Effect } from "effect";
+import { unstable_cache } from "next/cache";
+import { getYoutubeChannelId } from "~/server/auth/youtube-oauth";
 import { youtube } from "~/server/digg/youtube";
 import { runYoutubeAuthEffect } from "~/server/digg/youtube/auth-middleware";
 
@@ -47,4 +49,20 @@ export const getUserPlaylists = Effect.gen(function* () {
   return playlists;
 });
 
-export const $getUserPlaylists = () => runYoutubeAuthEffect(getUserPlaylists);
+export const $getUserPlaylists = () =>
+  runYoutubeAuthEffect(
+    Effect.gen(function* () {
+      const channelId = yield* getYoutubeChannelId();
+      const res = yield* Effect.tryPromise(
+        unstable_cache(
+          () => getUserPlaylists.pipe(Effect.runPromise),
+          ["playlist", channelId],
+          {
+            tags: ["playlist"],
+          },
+        ),
+      );
+
+      return res;
+    }),
+  );

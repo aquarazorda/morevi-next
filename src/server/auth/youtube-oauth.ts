@@ -11,6 +11,11 @@ const oauth2Client = new google.auth.OAuth2(
 
 const scopes = ["https://www.googleapis.com/auth/youtube.readonly"];
 
+class YoutubeChannelIdError {
+  readonly _tag = "YoutubeChannelIdError";
+  constructor(readonly message: string) {}
+}
+
 export async function getAuthUrl(redirect_uri?: string) {
   return oauth2Client.generateAuthUrl({
     access_type: "offline",
@@ -41,6 +46,13 @@ export const getYoutubeChannelId = (tokens?: {
           part: ["id"],
           mine: true,
         }),
+    ).pipe(
+      Effect.mapError(
+        (error) =>
+          new YoutubeChannelIdError(
+            `Failed to get youtube channel id: ${error.message}`,
+          ),
+      ),
     );
 
     return yield* Effect.fromNullable(response.data.items?.[0]?.id ?? null);

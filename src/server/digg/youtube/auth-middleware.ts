@@ -12,9 +12,9 @@ export class YoutubeAuthError {
   ) {}
 }
 
-export const withYoutubeAuth = <T>(
-  operation: Effect.Effect<T, Error, never>,
-): Effect.Effect<T, YoutubeAuthError | Error, never> =>
+export const withYoutubeAuth = <T, E>(
+  operation: Effect.Effect<T, E | YoutubeAuthError, never>,
+) =>
   Effect.gen(function* () {
     const accessToken = cookies().get("youtube_access_token")?.value;
     const refreshToken = cookies().get("youtube_refresh_token")?.value;
@@ -29,17 +29,16 @@ export const withYoutubeAuth = <T>(
     yield* setYoutubeCredentials();
 
     return yield* operation.pipe(
-      Effect.catchAll(
-        (error): Effect.Effect<T, YoutubeAuthError | Error, never> =>
-          error instanceof Error && error.message.includes("invalid_grant")
-            ? Effect.fail(new YoutubeAuthError("Invalid grant", error.message))
-            : Effect.fail(error),
+      Effect.catchAll((error) =>
+        error instanceof Error && error.message.includes("invalid_grant")
+          ? Effect.fail(new YoutubeAuthError("Invalid grant", error.message))
+          : Effect.fail(error),
       ),
     );
   });
 
-export const runYoutubeAuthEffect = async <T>(
-  effect: Effect.Effect<T, Error, never>,
+export const runYoutubeAuthEffect = async <T, E>(
+  effect: Effect.Effect<T, E, never>,
 ) => {
   const result = await withYoutubeAuth(effect).pipe(
     Effect.either,
