@@ -7,4 +7,6 @@ export {
   youtubePlaylist,
   youtubePlaylistItem,
   youtubePlaylistRelation,
+  youtubeFavoritePlaylist,
+  youtubeFavoritePlaylistRelation,
 } from "./schema/youtube";

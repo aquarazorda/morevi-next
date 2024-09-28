@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { user } from "~/server/db/schema/user";
 
 export const youtubePlaylist = sqliteTable("youtube_playlist", {
   id: text("id").unique(),
@@ -26,9 +27,36 @@ export const youtubePlaylistItem = sqliteTable("youtube_playlist_item", {
   ),
 });
 
+export const youtubeFavoritePlaylist = sqliteTable(
+  "favorite_youtube_playlist",
+  {
+    id: text("id").unique(),
+    playlistId: text("playlist_id")
+      .references(() => youtubePlaylist.id)
+      .notNull(),
+    userId: text("user_id")
+      .references(() => user.id)
+      .notNull(),
+    sort: integer("sort").notNull().default(0),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(
+      sql`CURRENT_TIMESTAMP`,
+    ),
+  },
+);
+
 export const youtubePlaylistRelation = relations(
   youtubePlaylist,
   ({ many }) => ({
     items: many(youtubePlaylistItem),
+  }),
+);
+
+export const youtubeFavoritePlaylistRelation = relations(
+  youtubeFavoritePlaylist,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [youtubeFavoritePlaylist.userId],
+      references: [user.id],
+    }),
   }),
 );

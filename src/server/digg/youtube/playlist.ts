@@ -1,7 +1,10 @@
 import { Schema } from "@effect/schema";
 import { Effect } from "effect";
 import { unstable_cache } from "next/cache";
+import { cache } from "react";
+import { validateRequest } from "~/server/auth/utils";
 import { getYoutubeChannelId, youtube } from "~/server/auth/youtube-oauth";
+import { db } from "~/server/db";
 import { runYoutubeAuthEffect } from "~/server/digg/youtube/auth-middleware";
 
 const PlaylistInfoSchema = Schema.Struct({
@@ -10,10 +13,10 @@ const PlaylistInfoSchema = Schema.Struct({
   description: Schema.String,
   thumbnailUrl: Schema.String,
   itemCount: Schema.Number,
-  publishedAt: Schema.String, // Add this line
+  publishedAt: Schema.String,
 });
 
-type PlaylistInfo = Schema.Schema.Type<typeof PlaylistInfoSchema>;
+export type PlaylistInfo = Schema.Schema.Type<typeof PlaylistInfoSchema>;
 
 const fetchUserPlaylists = (pageToken?: string) =>
   Effect.tryPromise(() =>
@@ -25,7 +28,7 @@ const fetchUserPlaylists = (pageToken?: string) =>
     }),
   );
 
-export const getUserPlaylists = Effect.gen(function* () {
+const getUserPlaylists = Effect.gen(function* () {
   let playlists: PlaylistInfo[] = [];
   let nextPageToken: string | undefined;
 
@@ -67,3 +70,19 @@ export const $getUserPlaylists = () =>
       return res;
     }),
   );
+
+export const $getFavoriteYoutubePlaylists = cache(() =>
+  Effect.gen(function* () {
+    const { user } = yield* validateRequest();
+    const res = yield* Effect.tryPromise(() =>
+      db.query.youtubeFavoritePlaylist.findMany({
+        where: (item, { eq }) => eq(item.userId, user.id),
+      }),
+    ).pipe(
+      Effect.map((res) => res.map((item) => item.playlistId)),
+      Effect.catchAll(() => Effect.succeed([] as string[])),
+    );
+
+    return res;
+  }).pipe(Effect.runPromise),
+);
