@@ -9,19 +9,25 @@ const oauth2Client = new google.auth.OAuth2(
   env.YOUTUBE_REDIRECT_URI,
 );
 
-export const setYoutubeCredentials = Effect.gen(function* () {
-  const accessToken = cookies().get("youtube_access_token")?.value;
-  const refreshToken = cookies().get("youtube_refresh_token")?.value;
+export const setYoutubeCredentials = (tokens?: {
+  access_token: string;
+  refresh_token: string;
+}) =>
+  Effect.gen(function* () {
+    const accessToken =
+      tokens?.access_token ?? cookies().get("youtube_access_token")?.value;
+    const refreshToken =
+      tokens?.refresh_token ?? cookies().get("youtube_refresh_token")?.value;
 
-  if (!accessToken || !refreshToken) {
-    yield* Effect.fail(new Error("YouTube tokens not found in cookies"));
-  }
+    if (!accessToken || !refreshToken) {
+      yield* Effect.fail(new Error("YouTube tokens not found in cookies"));
+    }
 
-  oauth2Client.setCredentials({
-    access_token: accessToken,
-    refresh_token: refreshToken,
+    oauth2Client.setCredentials({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
   });
-});
 
 export const youtube = google.youtube({
   version: "v3",

@@ -26,7 +26,7 @@ export const withYoutubeAuth = <T>(
       );
     }
 
-    yield* setYoutubeCredentials;
+    yield* setYoutubeCredentials();
 
     return yield* operation.pipe(
       Effect.catchAll(
