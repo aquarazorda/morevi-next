@@ -21,6 +21,9 @@ const PlaylistInfoSchema = Schema.Struct({
 });
 
 export type PlaylistInfo = Schema.Schema.Type<typeof PlaylistInfoSchema>;
+export type PlaylistFavourites = Awaited<
+  ReturnType<typeof $getFavoriteYoutubePlaylists>
+>;
 
 const fetchUserPlaylists = (pageToken?: string) =>
   Effect.tryPromise(() =>
@@ -75,12 +78,18 @@ export const $getUserPlaylists = () =>
     }),
   );
 
-export const $getFavoriteYoutubePlaylists = cache(() =>
+export const $getFavoriteYoutubePlaylists = cache((_userId?: string) =>
   Effect.gen(function* () {
-    const { user } = yield* validateRequest();
+    let userId = _userId;
+
+    if (!userId) {
+      const { user } = yield* validateRequest();
+      userId = user.id;
+    }
+
     const res = yield* Effect.tryPromise(() =>
       db.query.youtubeFavoritePlaylist.findMany({
-        where: (item, { eq }) => eq(item.userId, user.id),
+        where: (item, { eq }) => eq(item.userId, userId),
       }),
     );
 

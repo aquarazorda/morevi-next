@@ -68,7 +68,9 @@ export const GET = async (request: NextRequest) =>
     Effect.tapError(Effect.logError),
     Effect.catchAll(() =>
       Effect.succeed(
-        NextResponse.redirect(new URL("/admin/digg", request.url)),
+        NextResponse.redirect(
+          new URL("/admin/youtube/playlist-add", request.url),
+        ),
       ),
     ),
     Effect.runPromise,

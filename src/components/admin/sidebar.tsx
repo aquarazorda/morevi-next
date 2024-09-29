@@ -1,64 +1,86 @@
 import {
-  BookAIcon,
   ChevronRightSquareIcon,
   CopyPlusIcon,
   FoldersIcon,
-  LayersIcon,
   ListIcon,
-  ShellIcon,
-  ShuffleIcon,
-  UsersRound,
+  ListMusic,
+  ListPlus,
 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import AdminNavbarLinkButton from "./link-button";
+import {
+  $getFavoriteYoutubePlaylists,
+  type PlaylistFavourites,
+} from "~/server/digg/youtube/playlist";
 
-const items = [
-  // {
-  //   title: "Morevi",
-  //   list: [
-  //     { title: "Home", icon: ShellIcon, href: "/admin" },
-  //     { title: "Stock", icon: LayersIcon, href: "/admin/stock" },
-  //     { title: "Users", icon: UsersRound, href: "/admin/users" },
-  //     { title: "Orders", icon: ShuffleIcon, href: "/admin/orders" },
-  //     { title: "Categories", icon: BookAIcon, href: "/admin/categories" },
-  //   ],
-  // },
-  {
-    title: "Discogs",
-    list: [
-      { title: "Folders", icon: FoldersIcon, href: "/admin/discogs/folders" },
-      { title: "Add new", icon: CopyPlusIcon, href: "/admin/discogs/add" },
-    ],
-  },
-  // {
-  //   title: "Wolt",
-  //   list: [
-  //     { title: "List", icon: ListIcon, href: "/admin/wolt/list" },
-  //     {
-  //       title: "Generate",
-  //       icon: ChevronRightSquareIcon,
-  //       href: "/admin/wolt/generate",
-  //     },
-  //   ],
-  // },
-  {
-    title: "Instagram",
-    list: [
-      { title: "List", icon: ListIcon, href: "/admin/instagram/list" },
-      {
-        title: "Generate",
-        icon: ChevronRightSquareIcon,
-        href: "/admin/instagram/generate",
-      },
-    ],
-  },
-] as const;
+const items = ({ playlists }: { playlists: PlaylistFavourites }) =>
+  [
+    // {
+    //   title: "Morevi",
+    //   list: [
+    //     { title: "Home", icon: ShellIcon, href: "/admin" },
+    //     { title: "Stock", icon: LayersIcon, href: "/admin/stock" },
+    //     { title: "Users", icon: UsersRound, href: "/admin/users" },
+    //     { title: "Orders", icon: ShuffleIcon, href: "/admin/orders" },
+    //     { title: "Categories", icon: BookAIcon, href: "/admin/categories" },
+    //   ],
+    // },
+    {
+      title: "Discogs",
+      list: [
+        { title: "Folders", icon: FoldersIcon, href: "/admin/discogs/folders" },
+        { title: "Add new", icon: CopyPlusIcon, href: "/admin/discogs/add" },
+      ],
+    },
+    // {
+    //   title: "Wolt",
+    //   list: [
+    //     { title: "List", icon: ListIcon, href: "/admin/wolt/list" },
+    //     {
+    //       title: "Generate",
+    //       icon: ChevronRightSquareIcon,
+    //       href: "/admin/wolt/generate",
+    //     },
+    //   ],
+    // },
+    {
+      title: "Instagram",
+      list: [
+        { title: "List", icon: ListIcon, href: "/admin/instagram/list" },
+        {
+          title: "Generate",
+          icon: ChevronRightSquareIcon,
+          href: "/admin/instagram/generate",
+        },
+      ],
+    },
+    {
+      title: "Youtube",
+      list: [
+        { title: "Add", icon: ListPlus, href: "/admin/youtube/playlist-add" },
+        ...playlists.map((playlist) => ({
+          title: playlist.name,
+          icon: ListMusic,
+          href: `/admin/youtube/playlist/${playlist.playlistId}`,
+        })),
+      ],
+    },
+  ] as const;
 
-export function Sidebar({ className }: { className?: string }) {
+export async function Sidebar({
+  className,
+  userId,
+}: {
+  className?: string;
+  userId?: string;
+}) {
+  const playlists = await $getFavoriteYoutubePlaylists(userId);
+  const menuItems = items({ playlists });
+
   return (
     <div className={cn("pb-12", className)}>
       <div className="space-y-4 py-4">
-        {items.map((item) => (
+        {menuItems.map((item) => (
           <div className="px-3 py-2" key={item.title}>
             <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
               {item.title}

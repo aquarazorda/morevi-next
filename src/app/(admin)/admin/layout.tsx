@@ -19,7 +19,7 @@ export default async function AdminLayout({
   return (
     <div className="grid grid-cols-8 divide-x">
       <nav className="sticky col-span-1 h-[100dvh]">
-        <Sidebar />
+        <Sidebar userId={isAuth.right.user.id} />
       </nav>
       <main className="container col-span-7 px-8 py-4">{children}</main>
       <Toaster position="top-right" />

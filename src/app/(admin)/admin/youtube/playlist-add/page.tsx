@@ -1,9 +1,9 @@
 "use server";
 
 import { Either } from "effect";
-import { PlaylistsProvider } from "~/app/(admin)/admin/digg/context";
-import YoutubePlaylists from "~/app/(admin)/admin/digg/item";
-import YoutubePlaylistSelection from "~/app/(admin)/admin/digg/selection";
+import { PlaylistsProvider } from "~/app/(admin)/admin/youtube/playlist-add/context";
+import YoutubePlaylists from "~/app/(admin)/admin/youtube/playlist-add/item";
+import YoutubePlaylistSelection from "~/app/(admin)/admin/youtube/playlist-add/selection";
 import {
   $getFavoriteYoutubePlaylists,
   $getUserPlaylists,

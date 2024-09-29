@@ -2,7 +2,7 @@
 
 import { Check } from "lucide-react";
 import { use } from "react";
-import { PlaylistsContext } from "~/app/(admin)/admin/digg/context";
+import { PlaylistsContext } from "~/app/(admin)/admin/youtube/playlist-add/context";
 import { Card, CardContent } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
 
