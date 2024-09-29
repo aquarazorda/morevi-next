@@ -1,6 +1,5 @@
 "use client";
 
-import { isRight } from "effect/Either";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -16,11 +15,12 @@ export default function AdminLoginPage() {
   const onSubmit = (formData: FormData) => {
     startTransition(async () => {
       const res = await login(null, formData);
-      if (isRight(res)) {
+
+      if (res) {
         redirect("/admin");
       }
 
-      setError(res.left);
+      setError("Invalid username or password");
     });
   };
 

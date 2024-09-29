@@ -4,16 +4,24 @@ import { createContext, useState } from "react";
 import { type PlaylistInfo } from "~/server/digg/youtube/playlist";
 
 export const PlaylistsContext = createContext<{
-  selectedPlaylists: string[];
-  initialSelection: string[];
-  togglePlaylist: (playlistId: string) => void;
+  selectedPlaylists: { id: string; name: string }[];
+  initialSelection: { id: string; name: string }[];
   playlists: PlaylistInfo[];
+  togglePlaylist: (playlistId: string) => void;
   clearAll: () => void;
+  setSelectedPlaylists: (playlists: { id: string; name: string }[]) => void;
+  setInitialSelection: (playlists: { id: string; name: string }[]) => void;
 }>({
   selectedPlaylists: [],
   initialSelection: [],
   playlists: [],
+  setSelectedPlaylists: () => {
+    return;
+  },
   clearAll: () => {
+    return;
+  },
+  setInitialSelection: () => {
     return;
   },
   togglePlaylist: () => {
@@ -26,18 +34,26 @@ export const PlaylistsProvider = ({
   playlists,
   children,
 }: {
-  selectedPlaylists: string[];
+  selectedPlaylists: { id: string; name: string }[];
   playlists: PlaylistInfo[];
   children: React.ReactNode;
 }) => {
   const [selected, setSelectedPlaylists] =
-    useState<string[]>(selectedPlaylists);
+    useState<{ id: string; name: string }[]>(selectedPlaylists);
+  const [initialSelection, setInitialSelection] =
+    useState<{ id: string; name: string }[]>(selectedPlaylists);
 
   const togglePlaylist = (playlistId: string) => {
     setSelectedPlaylists((prev) =>
-      prev.includes(playlistId)
-        ? prev.filter((id) => id !== playlistId)
-        : [...prev, playlistId],
+      prev.some((p) => p.id === playlistId)
+        ? prev.filter((p) => p.id !== playlistId)
+        : [
+            ...prev,
+            {
+              id: playlistId,
+              name: playlists.find((p) => p.id === playlistId)?.name ?? "",
+            },
+          ],
     );
   };
 
@@ -45,10 +61,12 @@ export const PlaylistsProvider = ({
     <PlaylistsContext.Provider
       value={{
         selectedPlaylists: selected,
-        initialSelection: selectedPlaylists,
+        initialSelection: initialSelection,
         togglePlaylist,
         playlists,
-        clearAll: () => setSelectedPlaylists(selectedPlaylists),
+        setSelectedPlaylists,
+        setInitialSelection,
+        clearAll: () => setSelectedPlaylists(initialSelection),
       }}
     >
       {children}

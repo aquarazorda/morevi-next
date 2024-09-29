@@ -44,7 +44,11 @@ const login_ = (_: any, formData: FormData) =>
   );
 
 export const login = (_: any, formData: FormData) =>
-  pipe(login_(_, formData), Effect.either, Effect.runPromise);
+  pipe(
+    login_(_, formData),
+    Effect.catchAll(() => Effect.succeed(null)),
+    Effect.runPromise,
+  );
 
 export async function logout() {
   return pipe(

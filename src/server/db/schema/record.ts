@@ -18,7 +18,7 @@ export const recordStatus = ["draft", "active"] as const;
 export const record = sqliteTable(
   "record",
   {
-    id: text("id").unique().notNull(),
+    id: text("id").primaryKey(),
     name: text("name").notNull(),
     slug: text("slug").unique().notNull(),
     labelId: text("label_id").references(() => label.id),

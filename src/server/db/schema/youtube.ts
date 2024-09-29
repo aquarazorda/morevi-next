@@ -30,10 +30,9 @@ export const youtubePlaylistItem = sqliteTable("youtube_playlist_item", {
 export const youtubeFavoritePlaylist = sqliteTable(
   "favorite_youtube_playlist",
   {
-    id: text("id").unique(),
-    playlistId: text("playlist_id")
-      .references(() => youtubePlaylist.id)
-      .notNull(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    playlistId: text("playlist_id").notNull(),
+    name: text("name").notNull(),
     userId: text("user_id")
       .references(() => user.id)
       .notNull(),
@@ -42,13 +41,6 @@ export const youtubeFavoritePlaylist = sqliteTable(
       sql`CURRENT_TIMESTAMP`,
     ),
   },
-);
-
-export const youtubePlaylistRelation = relations(
-  youtubePlaylist,
-  ({ many }) => ({
-    items: many(youtubePlaylistItem),
-  }),
 );
 
 export const youtubeFavoritePlaylistRelation = relations(

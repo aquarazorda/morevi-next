@@ -1,13 +1,12 @@
 "use client";
 
-import { isRight } from "effect/Either";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { signup } from "~/server/auth/signup";
+import { $signup } from "~/server/auth/signup";
 
 export default function AdminSignupPage() {
   const [pending, startTransition] = useTransition();
@@ -15,13 +14,13 @@ export default function AdminSignupPage() {
 
   const onSubmit = (formData: FormData) => {
     startTransition(async () => {
-      const res = await signup(null, formData);
+      const res = await $signup(formData);
 
-      if (isRight(res)) {
+      if (res) {
         redirect("/admin");
       }
 
-      setError(res.left);
+      setError("Error signing up");
     });
   };
 

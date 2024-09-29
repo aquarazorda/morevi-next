@@ -23,7 +23,7 @@ const getHashedPassword = flow(
   ),
 );
 
-const signup_ = (_: any, formData: FormData) =>
+export const $signup = (formData: FormData) =>
   pipe(
     testUsername(formData.get("username") as string),
     Effect.bindTo("username"),
@@ -33,7 +33,8 @@ const signup_ = (_: any, formData: FormData) =>
     Effect.tap(({ username }) =>
       pipe(
         getExistingUser(username),
-        Effect.tap((existingUser) =>
+        Effect.catchAll(() => Effect.succeed(null)),
+        Effect.flatMap((existingUser) =>
           existingUser
             ? Effect.fail("User already exists")
             : Effect.succeed(existingUser),
@@ -48,6 +49,7 @@ const signup_ = (_: any, formData: FormData) =>
       }),
     ),
     Effect.flatMap(({ id }) => createSession(id)),
+    Effect.tapError(Effect.logError),
+    Effect.catchAll(() => Effect.succeed(null)),
+    Effect.runPromise,
   );
-
-export const signup = flow(signup_, Effect.either, Effect.runPromise);

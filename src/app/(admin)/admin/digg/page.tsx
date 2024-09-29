@@ -21,7 +21,10 @@ export default async function AdminDigPage() {
 
   return (
     <PlaylistsProvider
-      selectedPlaylists={favourites}
+      selectedPlaylists={favourites.map((f) => ({
+        id: f.playlistId,
+        name: f.name,
+      }))}
       playlists={playlists.right}
     >
       <div className="container mx-auto p-4 pb-20">

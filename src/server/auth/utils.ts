@@ -59,7 +59,7 @@ export const createSessionCookie = (session?: Session | null) =>
         sessionCookie.value,
         sessionCookie.attributes,
       );
-    } catch (_) {}
+    } catch {}
   });
 
 export const createSession = (userId: string) =>
@@ -75,12 +75,8 @@ export const validateRequest = cache((isAdmin?: boolean) =>
   pipe(
     cookies().get(lucia.sessionCookieName)?.value ?? undefined,
     Effect.fromNullable,
-    Effect.mapError(() => "No session found"),
     Effect.flatMap((sessionId) =>
-      Effect.tryPromise({
-        try: () => lucia.validateSession(sessionId),
-        catch: () => "Error validating session",
-      }),
+      Effect.tryPromise(() => lucia.validateSession(sessionId)),
     ),
     Effect.flatMap((res) =>
       !res.user || !res.session || (isAdmin && !res.user.isAdmin)

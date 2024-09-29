@@ -1,11 +1,14 @@
 "use client";
 
+import { Effect } from "effect";
 import { X } from "lucide-react";
-import { use, useMemo } from "react";
+import { use, useMemo, useTransition } from "react";
+import { toast } from "sonner";
 import { PlaylistsContext } from "~/app/(admin)/admin/digg/context";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
+import { $updateFavoriteYoutubePlaylists } from "~/server/digg/youtube/playlist";
 
 const Item = ({ id }: { id: string }) => {
   const { playlists, initialSelection, togglePlaylist, selectedPlaylists } =
@@ -17,8 +20,8 @@ const Item = ({ id }: { id: string }) => {
   );
 
   const { isRemoved, isAdded } = useMemo(() => {
-    const initialSet = new Set(initialSelection);
-    const currentSet = new Set(selectedPlaylists);
+    const initialSet = new Set(initialSelection.map((p) => p.id));
+    const currentSet = new Set(selectedPlaylists.map((p) => p.id));
 
     return {
       isRemoved: initialSet.has(id) && !currentSet.has(id),
@@ -33,7 +36,7 @@ const Item = ({ id }: { id: string }) => {
       className="group h-8 cursor-pointer"
       onClick={() => togglePlaylist(id)}
     >
-      {playlist?.title}
+      {playlist?.name}
       <button className="ml-1 group-hover:text-destructive">
         <X className="h-3 w-3" />
       </button>
@@ -42,8 +45,14 @@ const Item = ({ id }: { id: string }) => {
 };
 
 export default function YoutubePlaylistSelection() {
-  const { selectedPlaylists, initialSelection, clearAll } =
-    use(PlaylistsContext);
+  const [isPending, startTransition] = useTransition();
+  const {
+    selectedPlaylists,
+    initialSelection,
+    clearAll,
+    setSelectedPlaylists,
+    setInitialSelection,
+  } = use(PlaylistsContext);
 
   const hasChanges =
     selectedPlaylists.length !== initialSelection.length ||
@@ -56,18 +65,44 @@ export default function YoutubePlaylistSelection() {
       <div className="container mx-auto flex flex-wrap items-center justify-between gap-2">
         <ScrollArea className="h-fit flex-1">
           <div className="flex flex-wrap gap-2">
-            {selectedPlaylists.map((id) => (
+            {selectedPlaylists.map(({ id }) => (
               <Item key={id} id={id} />
             ))}
           </div>
         </ScrollArea>
-        <Button variant="destructive" onClick={clearAll}>
-          Clear Changes
-          <X className="h-3 w-3" />
-        </Button>
-        <Button onClick={() => console.log(selectedPlaylists)}>
-          Save Changes ({selectedPlaylists.length})
-        </Button>
+        <div className="contents">
+          <Button variant="destructive" onClick={clearAll} disabled={isPending}>
+            Clear Changes
+            <X className="h-3 w-3" />
+          </Button>
+          <Button
+            loading={isPending}
+            onClick={() =>
+              startTransition(async () => {
+                await Effect.tryPromise(() =>
+                  $updateFavoriteYoutubePlaylists(
+                    selectedPlaylists,
+                    initialSelection,
+                  ),
+                ).pipe(
+                  Effect.flatMap(Effect.fromNullable),
+                  Effect.tap((res) => {
+                    toast.success("Playlists saved");
+                    setSelectedPlaylists(res);
+                    setInitialSelection(res);
+                  }),
+                  Effect.catchAll(() => {
+                    toast.error("Failed to save playlists");
+                    return Effect.succeed([]);
+                  }),
+                  Effect.runPromise,
+                );
+              })
+            }
+          >
+            Save Changes ({selectedPlaylists.length})
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -1,0 +1,1 @@
+ALTER TABLE `favorite_youtube_playlist` ADD `name` text NOT NULL;
