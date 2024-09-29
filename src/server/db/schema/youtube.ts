@@ -17,15 +17,24 @@ export const youtubePlaylist = sqliteTable("youtube_playlist", {
 });
 
 export const youtubePlaylistItem = sqliteTable("youtube_playlist_item", {
-  id: text("id").unique(),
-  playlistId: text("playlist_id").references(() => youtubePlaylist.id),
+  id: text("id").unique().notNull(),
+  playlistId: text("playlist_id")
+    .references(() => youtubePlaylist.id)
+    .notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
   thumbnailUrl: text("thumbnail_url").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).default(
-    sql`CURRENT_TIMESTAMP`,
-  ),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
 });
+
+export const youtubePlaylistRelation = relations(
+  youtubePlaylist,
+  ({ many }) => ({
+    items: many(youtubePlaylistItem),
+  }),
+);
 
 export const youtubeFavoritePlaylist = sqliteTable(
   "favorite_youtube_playlist",

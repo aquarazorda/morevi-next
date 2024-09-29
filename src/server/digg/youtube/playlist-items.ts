@@ -1,7 +1,13 @@
 import { Schema } from "@effect/schema";
-import { Effect } from "effect";
+import { Effect, Stream, Option } from "effect";
 import { youtube } from "~/server/auth/youtube-oauth";
-import { runYoutubeAuthEffect } from "~/server/digg/youtube/auth-middleware";
+import { withYoutubeAuth } from "~/server/digg/youtube/auth-middleware";
+import { db } from "~/server/db";
+import {
+  youtubePlaylist,
+  youtubePlaylistItem,
+} from "~/server/db/schema/youtube";
+import { eq } from "drizzle-orm";
 
 const PlaylistItemSchema = Schema.Struct({
   id: Schema.String,
@@ -12,15 +18,7 @@ const PlaylistItemSchema = Schema.Struct({
 
 type PlaylistItem = Schema.Schema.Type<typeof PlaylistItemSchema>;
 
-const extractPlaylistId = (url: string) =>
-  Effect.try(() => {
-    const regex = /[?&]list=([^#\&\?]+)/;
-    const match = regex.exec(url);
-    if (!match) throw new Error("Invalid YouTube playlist URL");
-    return match[1];
-  });
-
-// Function to fetch playlist items
+// Function to fetch playlist items from YouTube API
 const fetchPlaylistItems = (playlistId: string, pageToken?: string) =>
   Effect.tryPromise(() =>
     youtube.playlistItems.list({
@@ -31,44 +29,69 @@ const fetchPlaylistItems = (playlistId: string, pageToken?: string) =>
     }),
   );
 
-const getPlaylistItems = (playlistUrl: string) =>
-  Effect.gen(function* () {
-    const playlistId = yield* extractPlaylistId(playlistUrl);
-    let items: PlaylistItem[] = [];
-    let nextPageToken: string | undefined;
+// Function to get playlist items from the database
+const getPlaylistItemsFromDb = (playlistId: string) =>
+  Effect.tryPromise(() =>
+    db
+      .select()
+      .from(youtubePlaylistItem)
+      .where(eq(youtubePlaylistItem.playlistId, playlistId)),
+  );
 
-    if (!playlistId) throw new Error("Invalid YouTube playlist URL");
+// Function to insert playlist items into the database
+const insertPlaylistItems = (items: PlaylistItem[], playlistId: string) =>
+  Effect.tryPromise(() =>
+    db.insert(youtubePlaylistItem).values(
+      items.map((item) => ({
+        ...item,
+        playlistId,
+      })),
+    ),
+  );
 
-    do {
-      const response = yield* fetchPlaylistItems(playlistId, nextPageToken);
-      const newItems = yield* Effect.forEach(
-        response.data.items ?? [],
-        (item) =>
-          Schema.decodeUnknown(PlaylistItemSchema)({
-            id: item.id ?? "",
-            title: item.snippet?.title ?? "",
-            description: item.snippet?.description ?? "",
-            thumbnailUrl: item.snippet?.thumbnails?.default?.url ?? "",
-          }),
-      );
-      items = [...items, ...newItems];
-      nextPageToken = response.data.nextPageToken ?? undefined;
-    } while (nextPageToken);
-
-    return items;
-  });
-
-const FormDataSchema = Schema.Struct({
-  "youtube-playlist-url": Schema.String,
-});
-
-export const $getPlaylistItems = async (formData: FormData) =>
-  runYoutubeAuthEffect(
+// Stream to fetch and insert playlist items
+const fetchAndInsertPlaylistItems = (playlistId: string) =>
+  Stream.paginateEffect(undefined as string | undefined, (pageToken) =>
     Effect.gen(function* () {
-      const validatedData = yield* Schema.decodeUnknownEither(FormDataSchema)(
-        Object.fromEntries(formData),
+      const response = yield* fetchPlaylistItems(playlistId, pageToken);
+      const items = yield* Effect.forEach(response.data.items ?? [], (item) =>
+        Schema.decodeUnknown(PlaylistItemSchema)({
+          id: item.id ?? "",
+          title: item.snippet?.title ?? "",
+          description: item.snippet?.description ?? "",
+          thumbnailUrl: item.snippet?.thumbnails?.default?.url ?? "",
+        }),
       );
-      const playlistUrl = validatedData["youtube-playlist-url"];
-      return yield* getPlaylistItems(playlistUrl);
+      yield* insertPlaylistItems(items, playlistId);
+
+      return [items, Option.fromNullable(response.data.nextPageToken)] as const;
+    }),
+  );
+
+export const $getPlaylistItems = (playlistId: string) =>
+  withYoutubeAuth(
+    Effect.gen(function* () {
+      const existingPlaylist = yield* Effect.tryPromise(() =>
+        db.query.youtubePlaylist.findFirst({
+          where: eq(youtubePlaylist.id, playlistId),
+          with: {
+            items: true,
+          },
+        }),
+      ).pipe(
+        Effect.flatMap(Effect.fromNullable),
+        Effect.map(({ items }) => items),
+      );
+
+      if (existingPlaylist.length > 0) {
+        return yield* getPlaylistItemsFromDb(playlistId);
+      } else {
+        const items: PlaylistItem[] = [];
+        yield* Stream.runForEach(
+          fetchAndInsertPlaylistItems(playlistId),
+          (pageItems) => Effect.sync(() => items.push(...pageItems)),
+        );
+        return items;
+      }
     }),
   );

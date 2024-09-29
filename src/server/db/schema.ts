@@ -6,6 +6,7 @@ export { artist, artistToRecordRelation } from "./schema/artist";
 export {
   youtubePlaylist,
   youtubePlaylistItem,
+  youtubePlaylistRelation,
   youtubeFavoritePlaylist,
   youtubeFavoritePlaylistRelation,
 } from "./schema/youtube";

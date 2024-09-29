@@ -1,3 +1,5 @@
+"use server";
+
 import { isLeft } from "effect/Either";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";

@@ -2,7 +2,6 @@ import { Effect } from "effect";
 import { cookies } from "next/headers";
 import { getAuthUrl } from "~/server/auth/youtube-oauth";
 import { setYoutubeCredentials } from "./index";
-import { redirect } from "next/navigation";
 
 export class YoutubeAuthError {
   readonly _tag = "YoutubeAuthError";
@@ -12,8 +11,13 @@ export class YoutubeAuthError {
   ) {}
 }
 
-export const withYoutubeAuth = <T, E>(
-  operation: Effect.Effect<T, E | YoutubeAuthError, never>,
+class RedirectError {
+  readonly _tag = "RedirectError";
+  constructor(readonly url: string) {}
+}
+
+export const withYoutubeAuth = <T, E extends { _tag: string }>(
+  operation: Effect.Effect<T, YoutubeAuthError | RedirectError | E, never>,
 ) =>
   Effect.gen(function* () {
     const accessToken = cookies().get("youtube_access_token")?.value;
@@ -30,24 +34,16 @@ export const withYoutubeAuth = <T, E>(
 
     return yield* operation.pipe(
       Effect.catchAll((error) =>
-        error instanceof Error && error.message.includes("invalid_grant")
-          ? Effect.fail(new YoutubeAuthError("Invalid grant", error.message))
-          : Effect.fail(error),
+        Effect.gen(function* () {
+          return yield* error instanceof Error &&
+          error.message.includes("invalid_grant")
+            ? Effect.fail(new YoutubeAuthError("Invalid grant", error.message))
+            : Effect.fail(new YoutubeAuthError("Unknown error", ""));
+        }),
       ),
     );
-  });
-
-export const runYoutubeAuthEffect = async <T, E>(
-  effect: Effect.Effect<T, E, never>,
-) => {
-  const result = await withYoutubeAuth(effect).pipe(
-    Effect.either,
-    Effect.runPromise,
+  }).pipe(
+    Effect.catchTag("YoutubeAuthError", (cause) =>
+      Effect.fail(new RedirectError(cause.authUrl)),
+    ),
   );
-
-  if (result._tag === "Left" && result.left instanceof YoutubeAuthError) {
-    redirect(result.left.authUrl);
-  }
-
-  return result;
-};

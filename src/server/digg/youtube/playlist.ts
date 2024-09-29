@@ -1,15 +1,10 @@
-"use server";
-
 import { Schema } from "@effect/schema";
 import { inArray } from "drizzle-orm";
 import { Effect } from "effect";
-import { unstable_cache } from "next/cache";
-import { cache } from "react";
 import { validateRequest } from "~/server/auth/utils";
-import { getYoutubeChannelId, youtube } from "~/server/auth/youtube-oauth";
+import { youtube } from "~/server/auth/youtube-oauth";
 import { db } from "~/server/db";
 import { youtubeFavoritePlaylist } from "~/server/db/schema/youtube";
-import { runYoutubeAuthEffect } from "~/server/digg/youtube/auth-middleware";
 
 const PlaylistInfoSchema = Schema.Struct({
   id: Schema.String,
@@ -21,9 +16,6 @@ const PlaylistInfoSchema = Schema.Struct({
 });
 
 export type PlaylistInfo = Schema.Schema.Type<typeof PlaylistInfoSchema>;
-export type PlaylistFavourites = Awaited<
-  ReturnType<typeof $getFavoriteYoutubePlaylists>
->;
 
 const fetchUserPlaylists = (pageToken?: string) =>
   Effect.tryPromise(() =>
@@ -35,7 +27,7 @@ const fetchUserPlaylists = (pageToken?: string) =>
     }),
   );
 
-const getUserPlaylists = Effect.gen(function* () {
+export const getUserPlaylists = Effect.gen(function* () {
   let playlists: PlaylistInfo[] = [];
   let nextPageToken: string | undefined;
 
@@ -59,46 +51,6 @@ const getUserPlaylists = Effect.gen(function* () {
 
   return playlists;
 });
-
-export const $getUserPlaylists = () =>
-  runYoutubeAuthEffect(
-    Effect.gen(function* () {
-      const channelId = yield* getYoutubeChannelId();
-      const res = yield* Effect.tryPromise(
-        unstable_cache(
-          () => getUserPlaylists.pipe(Effect.runPromise),
-          ["playlist", channelId],
-          {
-            tags: ["playlist"],
-          },
-        ),
-      );
-
-      return res;
-    }),
-  );
-
-export const $getFavoriteYoutubePlaylists = cache((_userId?: string) =>
-  Effect.gen(function* () {
-    let userId = _userId;
-
-    if (!userId) {
-      const { user } = yield* validateRequest();
-      userId = user.id;
-    }
-
-    const res = yield* Effect.tryPromise(() =>
-      db.query.youtubeFavoritePlaylist.findMany({
-        where: (item, { eq }) => eq(item.userId, userId),
-      }),
-    );
-
-    return res;
-  }).pipe(
-    Effect.mapError(() => Effect.succeed([])),
-    Effect.runPromise,
-  ),
-);
 
 export const $updateFavoriteYoutubePlaylists = (
   selectedPlaylists: { id: string; name: string }[],

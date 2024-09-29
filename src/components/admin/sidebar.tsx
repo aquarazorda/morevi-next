@@ -11,7 +11,9 @@ import AdminNavbarLinkButton from "./link-button";
 import {
   $getFavoriteYoutubePlaylists,
   type PlaylistFavourites,
-} from "~/server/digg/youtube/playlist";
+} from "~/server/digg/youtube/exports";
+import effectComponent from "~/server/effect";
+import { Effect } from "effect";
 
 const items = ({ playlists }: { playlists: PlaylistFavourites }) =>
   [
@@ -58,46 +60,45 @@ const items = ({ playlists }: { playlists: PlaylistFavourites }) =>
       title: "Youtube",
       list: [
         { title: "Add", icon: ListPlus, href: "/admin/youtube/playlist-add" },
-        ...playlists.map((playlist) => ({
-          title: playlist.name,
-          icon: ListMusic,
-          href: `/admin/youtube/playlist/${playlist.playlistId}`,
-        })),
+        ...playlists
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((playlist) => ({
+            title: playlist.name,
+            icon: ListMusic,
+            href: `/admin/youtube/playlist/${playlist.playlistId}`,
+          })),
       ],
     },
   ] as const;
 
-export async function Sidebar({
-  className,
-  userId,
-}: {
-  className?: string;
-  userId?: string;
-}) {
-  const playlists = await $getFavoriteYoutubePlaylists(userId);
-  const menuItems = items({ playlists });
+export const Sidebar = effectComponent(
+  ({ className, userId }: { className?: string; userId?: string }) =>
+    Effect.gen(function* () {
+      const playlists = yield* $getFavoriteYoutubePlaylists(userId);
+      const menuItems = items({ playlists });
 
-  return (
-    <div className={cn("pb-12", className)}>
-      <div className="space-y-4 py-4">
-        {menuItems.map((item) => (
-          <div className="px-3 py-2" key={item.title}>
-            <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-              {item.title}
-            </h2>
-            <div className="space-y-1">
-              {item.list.map(({ title, href, icon: Icon }) => (
-                <AdminNavbarLinkButton
-                  key={title}
-                  icon={<Icon className="mr-2 size-4" />}
-                  href={href}
-                  title={title}
-                />
-              ))}
-            </div>
+      return (
+        <div className={cn("pb-12", className)}>
+          <div className="space-y-4 py-4">
+            {menuItems.map((item) => (
+              <div className="px-3 py-2" key={item.title}>
+                <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
+                  {item.title}
+                </h2>
+                <div className="space-y-1">
+                  {item.list.map(({ title, href, icon: Icon }) => (
+                    <AdminNavbarLinkButton
+                      key={title}
+                      icon={<Icon className="mr-2 size-4" />}
+                      href={href}
+                      title={title}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+        </div>
+      );
+    }),
+);
