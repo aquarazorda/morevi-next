@@ -6,9 +6,9 @@ import { youtube } from "~/server/auth/youtube-oauth";
 import { db } from "~/server/db";
 import { youtubeFavoritePlaylist } from "~/server/db/schema/youtube";
 
-const PlaylistInfoSchema = Schema.Struct({
+export const PlaylistInfoSchema = Schema.Struct({
   id: Schema.String,
-  name: Schema.String,
+  title: Schema.String,
   description: Schema.String,
   thumbnailUrl: Schema.String,
   itemCount: Schema.Number,
@@ -38,7 +38,7 @@ export const getUserPlaylists = Effect.gen(function* () {
       (item) =>
         Schema.decodeUnknown(PlaylistInfoSchema)({
           id: item.id ?? "",
-          name: item.snippet?.title ?? "",
+          title: item.snippet?.title ?? "",
           description: item.snippet?.description ?? "",
           thumbnailUrl: item.snippet?.thumbnails?.default?.url ?? "",
           itemCount: item.contentDetails?.itemCount ?? 0,

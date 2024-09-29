@@ -1,4 +1,4 @@
-import { inter } from "~/components/ui/fonts";
+import { GeistMono } from "geist/font/mono";
 import "~/styles/globals.css";
 
 export const metadata = {
@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`font-sans ${inter.variable} dark`}>{children}</body>
+      <body className={`font-mono ${GeistMono.variable} dark`}>{children}</body>
     </html>
   );
 }

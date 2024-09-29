@@ -3,17 +3,17 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { user } from "~/server/db/schema/user";
 
 export const youtubePlaylist = sqliteTable("youtube_playlist", {
-  id: text("id").unique(),
+  id: text("id").unique().notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
   thumbnailUrl: text("thumbnail_url").notNull(),
   itemCount: integer("item_count").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).default(
-    sql`CURRENT_TIMESTAMP`,
-  ),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).default(
-    sql`CURRENT_TIMESTAMP`,
-  ),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
 });
 
 export const youtubePlaylistItem = sqliteTable("youtube_playlist_item", {
