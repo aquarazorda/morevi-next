@@ -1,8 +1,9 @@
-import { type ReactNode, Fragment, Suspense } from "react";
+import { Stream } from "effect";
+import { type ReactNode, Suspense } from "react";
 
-export async function* streamToGenerator(
-  readable: ReadableStream<unknown>,
-): AsyncGenerator<ReactNode, void, unknown> {
+export async function* streamToGenerator<T>(
+  readable: ReadableStream<T[]>,
+): AsyncGenerator<T[], void, unknown> {
   const reader = readable.getReader();
 
   try {
@@ -10,18 +11,20 @@ export async function* streamToGenerator(
       const { done, value } = await reader.read();
       if (done) break;
 
-      yield value as ReactNode;
+      yield value;
     }
   } finally {
     reader.releaseLock();
   }
 }
 
-export async function InnerGenerator({
+export async function InnerGenerator<T>({
   generator,
+  children,
   fallback,
 }: {
-  generator: AsyncGenerator<ReactNode, void, unknown>;
+  generator: AsyncGenerator<T[], void, unknown>;
+  children: (data: T[]) => ReactNode;
   fallback?: React.ReactNode;
 }) {
   const { value, done } = await generator.next();
@@ -30,25 +33,29 @@ export async function InnerGenerator({
 
   return (
     <>
-      {value}
+      {children(value)}
       <Suspense fallback={fallback}>
-        <InnerGenerator generator={generator} />
+        <InnerGenerator generator={generator}>{children}</InnerGenerator>
       </Suspense>
     </>
   );
 }
 
-export function GeneratorComponent({
-  readable,
+export function GeneratorComponent<T, E>({
+  stream,
+  children,
   fallback,
 }: {
-  readable: ReadableStream<unknown>;
+  stream: Stream.Stream<T[], E>;
+  children: (data: T[]) => ReactNode;
   fallback?: React.ReactNode;
 }) {
   return (
     <InnerGenerator
-      generator={streamToGenerator(readable)}
+      generator={streamToGenerator<T>(Stream.toReadableStream(stream))}
       fallback={fallback}
-    />
+    >
+      {children}
+    </InnerGenerator>
   );
 }

@@ -8,7 +8,7 @@ import { PlaylistsContext } from "~/app/(admin)/admin/youtube/playlist-add/conte
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
-// import { $updateFavoriteYoutubePlaylists } from "~/server/digg/youtube/playlist";
+import { $updateFavoriteYoutubePlaylists } from "~/server/digg/youtube/client";
 
 const Item = ({ id }: { id: string }) => {
   const { playlists, initialSelection, togglePlaylist, selectedPlaylists } =
@@ -36,7 +36,7 @@ const Item = ({ id }: { id: string }) => {
       className="group h-8 cursor-pointer"
       onClick={() => togglePlaylist(id)}
     >
-      {playlist?.name}
+      {playlist?.title}
       <button className="ml-1 group-hover:text-destructive">
         <X className="h-3 w-3" />
       </button>
@@ -77,28 +77,28 @@ export default function YoutubePlaylistSelection() {
           </Button>
           <Button
             loading={isPending}
-            // onClick={() =>
-            //   startTransition(async () => {
-            //     await Effect.tryPromise(() =>
-            //       $updateFavoriteYoutubePlaylists(
-            //         selectedPlaylists,
-            //         initialSelection,
-            //       ),
-            //     ).pipe(
-            //       Effect.flatMap(Effect.fromNullable),
-            //       Effect.tap((res) => {
-            //         toast.success("Playlists saved");
-            //         setSelectedPlaylists(res);
-            //         setInitialSelection(res);
-            //       }),
-            //       Effect.catchAll(() => {
-            //         toast.error("Failed to save playlists");
-            //         return Effect.succeed([]);
-            //       }),
-            //       Effect.runPromise,
-            //     );
-            //   })
-            // }
+            onClick={() =>
+              startTransition(async () => {
+                await Effect.tryPromise(() =>
+                  $updateFavoriteYoutubePlaylists(
+                    selectedPlaylists,
+                    initialSelection,
+                  ),
+                ).pipe(
+                  Effect.flatMap(Effect.fromNullable),
+                  Effect.tap((res) => {
+                    toast.success("Playlists saved");
+                    setSelectedPlaylists(res);
+                    setInitialSelection(res);
+                  }),
+                  Effect.catchAll(() => {
+                    toast.error("Failed to save playlists");
+                    return Effect.succeed([]);
+                  }),
+                  Effect.runPromise,
+                );
+              })
+            }
           >
             Save Changes ({selectedPlaylists.length})
           </Button>

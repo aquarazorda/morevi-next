@@ -51,7 +51,7 @@ export const PlaylistsProvider = ({
             ...prev,
             {
               id: playlistId,
-              name: playlists.find((p) => p.id === playlistId)?.name ?? "",
+              name: playlists.find((p) => p.id === playlistId)?.title ?? "",
             },
           ],
     );

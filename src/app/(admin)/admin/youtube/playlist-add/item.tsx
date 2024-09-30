@@ -25,7 +25,7 @@ export default function YoutubePlaylists() {
         <div className="relative">
           <img
             src={playlist.thumbnailUrl}
-            alt={playlist.name}
+            alt={playlist.title}
             className="h-auto w-full rounded-md"
           />
           {selectedPlaylists.some((p) => p.id === playlist.id) && (
@@ -35,7 +35,7 @@ export default function YoutubePlaylists() {
           )}
         </div>
         <h2 className="mt-2 line-clamp-2 text-center text-sm font-semibold">
-          {playlist.name}
+          {playlist.title}
         </h2>
       </CardContent>
     </Card>

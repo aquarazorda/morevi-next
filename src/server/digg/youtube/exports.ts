@@ -33,12 +33,12 @@ export const getPlaylistItems = (id: string) =>
   Effect.gen(function* () {
     const res = yield* Effect.tryPromise(() =>
       db.query.youtubePlaylistItem.findMany({
-        where: (item, { eq }) => eq(item.playlistId, id),
+        where: (item, { eq }) => eq(item.id, id),
       }),
     );
 
     if (res.length === 0) {
-      yield* Effect.fail(new Error("Playlist empty"));
+      yield* Effect.fail(new PlaylistEmptyError());
     }
 
     return res;

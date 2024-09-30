@@ -35,7 +35,7 @@ const getPlaylistItemsFromDb = (playlistId: string) =>
     db
       .select()
       .from(youtubePlaylistItem)
-      .where(eq(youtubePlaylistItem.playlistId, playlistId)),
+      .where(eq(youtubePlaylistItem.id, playlistId)),
   );
 
 // Function to insert playlist items into the database
@@ -65,7 +65,7 @@ const fetchAndInsertPlaylistItems = (playlistId: string) =>
           thumbnailUrl: item.snippet?.thumbnails?.default?.url ?? "",
         }),
       );
-      yield* insertPlaylistItems(items, playlistId);
+      // yield* insertPlaylistItems(items, playlistId);
 
       return [items, Option.fromNullable(response.data.nextPageToken)] as const;
     }),
@@ -94,6 +94,7 @@ export const getPlaylistItemsStream = (playlistId: string) =>
               }) as const,
           ),
         ),
+        Effect.catchAll(() => Effect.succeed([])),
       );
 
       if (existingPlaylist.length > 0) {
