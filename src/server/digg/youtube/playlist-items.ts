@@ -41,12 +41,15 @@ const getPlaylistItemsFromDb = (playlistId: string) =>
 // Function to insert playlist items into the database
 const insertPlaylistItems = (items: PlaylistItem[], playlistId: string) =>
   Effect.tryPromise(() =>
-    db.insert(youtubePlaylistItem).values(
-      items.map((item) => ({
-        ...item,
-        playlistId,
-      })),
-    ),
+    db
+      .insert(youtubePlaylistItem)
+      .values(
+        items.map((item) => ({
+          ...item,
+          playlistId,
+        })),
+      )
+      .onConflictDoNothing(),
   );
 
 // Stream to fetch and insert playlist items
