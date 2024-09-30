@@ -8,7 +8,6 @@ export const env = createEnv({
    */
   server: {
     DATABASE_URL: z.string().url(),
-    DATABASE_AUTH_TOKEN: z.string(),
     DISCOGS_TOKEN: z.string(),
     WP_HOST: z.string().url(),
     WP_KEY: z.string(),
@@ -39,7 +38,6 @@ export const env = createEnv({
    */
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
-    DATABASE_AUTH_TOKEN: process.env.DATABASE_AUTH_TOKEN,
     DISCOGS_TOKEN: process.env.DISCOGS_TOKEN,
     WP_HOST: process.env.WP_HOST,
     WP_KEY: process.env.WP_KEY,

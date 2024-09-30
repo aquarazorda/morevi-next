@@ -1,14 +1,14 @@
-import { index, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { pgTable, text, index } from "drizzle-orm/pg-core";
 
-export const label = sqliteTable(
+export const label = pgTable(
   "label",
   {
     id: text("id").unique(),
     name: text("name").notNull(),
-    slug: text("slug").unique().notNull(),
+    slug: text("slug").notNull().unique(),
   },
   (table) => ({
-    nameIdx: index("labelNameIdx").on(table.name),
-    slugIdx: index("labelSlugIdx").on(table.slug),
+    nameIdx: index("label_name_idx").on(table.name),
+    slugIdx: index("label_slug_idx").on(table.slug),
   }),
 );

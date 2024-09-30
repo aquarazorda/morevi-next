@@ -1,26 +1,26 @@
 import { createId } from "@paralleldrive/cuid2";
-import { index, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { pgTable, text, index, primaryKey } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { record } from "./record";
 
-export const category = sqliteTable(
+export const category = pgTable(
   "category",
   {
     id: text("id")
       .notNull()
-      .$defaultFn(() => createId())
-      .primaryKey(),
-    slug: text("slug").unique().notNull(),
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    slug: text("slug").notNull().unique(),
     name: text("name").notNull(),
   },
   (table) => ({
-    nameIdx: index("categoryNameIdx").on(table.name),
-    slugIdx: index("categorySlugIdx").on(table.slug),
+    nameIdx: index("category_name_idx").on(table.name),
+    slugIdx: index("category_slug_idx").on(table.slug),
   }),
 );
 
-export const recordsToCategories = sqliteTable(
-  "recordsToCategories",
+export const recordsToCategories = pgTable(
+  "records_to_categories",
   {
     recordId: text("record_id")
       .notNull()

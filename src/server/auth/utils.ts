@@ -36,13 +36,11 @@ export const testPassword = (
 
 export const getExistingUser = (username: string) =>
   pipe(
-    Effect.tryPromise({
-      try: () =>
-        db.query.user.findFirst({
-          where: (user, { eq }) => eq(user.username, username.toLowerCase()),
-        }),
-      catch: () => "Error finding user",
-    }),
+    Effect.tryPromise(() =>
+      db.query.user.findFirst({
+        where: (user, { eq }) => eq(user.username, username.toLowerCase()),
+      }),
+    ),
     Effect.flatMap(Effect.fromNullable),
     Effect.mapError(() => "User doesn't exist"),
   );

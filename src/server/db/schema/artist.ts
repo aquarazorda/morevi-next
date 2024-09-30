@@ -1,13 +1,19 @@
-import { sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { pgTable, text, uniqueIndex } from "drizzle-orm/pg-core";
 import { record } from "./record";
 
-export const artist = sqliteTable("artist", {
-  id: text("id").unique().notNull(),
-  name: text("name").notNull(),
-  slug: text("slug").unique().notNull(),
-});
+export const artist = pgTable(
+  "artist",
+  {
+    id: text("id").notNull().unique(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+  },
+  (table) => ({
+    slugIdx: uniqueIndex("artist_slug_idx").on(table.slug),
+  }),
+);
 
-export const artistToRecordRelation = sqliteTable("artistToRecords", {
+export const artistToRecordRelation = pgTable("artist_to_records", {
   recordSlug: text("record_slug")
     .notNull()
     .references(() => record.slug),

@@ -1,77 +1,90 @@
 {
-  "version": "6",
-  "dialect": "sqlite",
-  "id": "bdd5068b-83b5-4dfb-8e93-9812ac39c334",
+  "id": "df1750c1-231c-49ee-b849-39985b34c16a",
   "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "artist": {
+    "public.artist": {
       "name": "artist",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "slug": {
           "name": "slug",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         }
       },
       "indexes": {
-        "artist_id_unique": {
-          "name": "artist_id_unique",
+        "artist_slug_idx": {
+          "name": "artist_slug_idx",
           "columns": [
-            "id"
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": true
-        },
-        "artist_slug_unique": {
-          "name": "artist_slug_unique",
-          "columns": [
-            "slug"
-          ],
-          "isUnique": true
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "artist_id_unique": {
+          "name": "artist_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id"
+          ]
+        },
+        "artist_slug_unique": {
+          "name": "artist_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      }
     },
-    "artistToRecords": {
-      "name": "artistToRecords",
+    "public.artist_to_records": {
+      "name": "artist_to_records",
+      "schema": "",
       "columns": {
         "record_slug": {
           "name": "record_slug",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "artist_slug": {
           "name": "artist_slug",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "artistToRecords_record_slug_record_slug_fk": {
-          "name": "artistToRecords_record_slug_record_slug_fk",
-          "tableFrom": "artistToRecords",
+        "artist_to_records_record_slug_record_slug_fk": {
+          "name": "artist_to_records_record_slug_record_slug_fk",
+          "tableFrom": "artist_to_records",
           "tableTo": "record",
           "columnsFrom": [
             "record_slug"
@@ -82,9 +95,9 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "artistToRecords_artist_slug_artist_slug_fk": {
-          "name": "artistToRecords_artist_slug_artist_slug_fk",
-          "tableFrom": "artistToRecords",
+        "artist_to_records_artist_slug_artist_slug_fk": {
+          "name": "artist_to_records_artist_slug_artist_slug_fk",
+          "tableFrom": "artist_to_records",
           "tableTo": "artist",
           "columnsFrom": [
             "artist_slug"
@@ -99,237 +112,264 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "category": {
+    "public.category": {
       "name": "category",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "slug": {
           "name": "slug",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         }
       },
       "indexes": {
-        "category_slug_unique": {
-          "name": "category_slug_unique",
+        "category_name_idx": {
+          "name": "category_name_idx",
           "columns": [
-            "slug"
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": true
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         },
-        "categoryNameIdx": {
-          "name": "categoryNameIdx",
+        "category_slug_idx": {
+          "name": "category_slug_idx",
           "columns": [
-            "name"
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
-        },
-        "categorySlugIdx": {
-          "name": "categorySlugIdx",
-          "columns": [
-            "slug"
-          ],
-          "isUnique": false
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "category_slug_unique": {
+          "name": "category_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      }
     },
-    "label": {
+    "public.label": {
       "name": "label",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "slug": {
           "name": "slug",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         }
       },
       "indexes": {
+        "label_name_idx": {
+          "name": "label_name_idx",
+          "columns": [
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "label_slug_idx": {
+          "name": "label_slug_idx",
+          "columns": [
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
         "label_id_unique": {
           "name": "label_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ],
-          "isUnique": true
+          ]
         },
         "label_slug_unique": {
           "name": "label_slug_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "slug"
-          ],
-          "isUnique": true
-        },
-        "labelNameIdx": {
-          "name": "labelNameIdx",
-          "columns": [
-            "name"
-          ],
-          "isUnique": false
-        },
-        "labelSlugIdx": {
-          "name": "labelSlugIdx",
-          "columns": [
-            "slug"
-          ],
-          "isUnique": false
+          ]
         }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      }
     },
-    "record": {
+    "public.record": {
       "name": "record",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "slug": {
           "name": "slug",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "label_id": {
           "name": "label_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "year": {
           "name": "year",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "cat_no": {
           "name": "cat_no",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "videos": {
           "name": "videos",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "stock": {
           "name": "stock",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
           "default": 0
         },
         "condition": {
           "name": "condition",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "status": {
           "name": "status",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
           "default": "'active'"
         },
         "price": {
           "name": "price",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false,
-          "default": "CURRENT_DATE"
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false,
-          "default": "CURRENT_DATE"
+          "default": "now()"
         }
       },
       "indexes": {
-        "record_slug_unique": {
-          "name": "record_slug_unique",
+        "record_name_idx": {
+          "name": "record_name_idx",
           "columns": [
-            "slug"
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": true
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         },
-        "recordNameIdx": {
-          "name": "recordNameIdx",
+        "record_slug_idx": {
+          "name": "record_slug_idx",
           "columns": [
-            "name"
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": false
-        },
-        "recordSlugIdx": {
-          "name": "recordSlugIdx",
-          "columns": [
-            "slug"
-          ],
-          "isUnique": false
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -348,31 +388,38 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "record_slug_unique": {
+          "name": "record_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      }
     },
-    "recordsToCategories": {
-      "name": "recordsToCategories",
+    "public.records_to_categories": {
+      "name": "records_to_categories",
+      "schema": "",
       "columns": {
         "record_id": {
           "name": "record_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "category_id": {
           "name": "category_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "recordsToCategories_record_id_record_id_fk": {
-          "name": "recordsToCategories_record_id_record_id_fk",
-          "tableFrom": "recordsToCategories",
+        "records_to_categories_record_id_record_id_fk": {
+          "name": "records_to_categories_record_id_record_id_fk",
+          "tableFrom": "records_to_categories",
           "tableTo": "record",
           "columnsFrom": [
             "record_id"
@@ -383,9 +430,9 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "recordsToCategories_category_id_category_id_fk": {
-          "name": "recordsToCategories_category_id_category_id_fk",
-          "tableFrom": "recordsToCategories",
+        "records_to_categories_category_id_category_id_fk": {
+          "name": "records_to_categories_category_id_category_id_fk",
+          "tableFrom": "records_to_categories",
           "tableTo": "category",
           "columnsFrom": [
             "category_id"
@@ -398,39 +445,37 @@
         }
       },
       "compositePrimaryKeys": {
-        "recordsToCategories_record_id_category_id_pk": {
+        "records_to_categories_record_id_category_id_pk": {
+          "name": "records_to_categories_record_id_category_id_pk",
           "columns": [
             "record_id",
             "category_id"
-          ],
-          "name": "recordsToCategories_record_id_category_id_pk"
+          ]
         }
       },
       "uniqueConstraints": {}
     },
-    "session": {
+    "public.session": {
       "name": "session",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "user_id": {
           "name": "user_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "expires_at": {
           "name": "expires_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         }
       },
       "indexes": {},
@@ -452,249 +497,196 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "user": {
+    "public.user": {
       "name": "user",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "username": {
           "name": "username",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "password": {
           "name": "password",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "is_admin": {
           "name": "is_admin",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": false
+          "default": 0
         }
       },
-      "indexes": {
-        "user_username_unique": {
-          "name": "user_username_unique",
-          "columns": [
-            "username"
-          ],
-          "isUnique": true
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "user_username_unique": {
+          "name": "user_username_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "username"
+          ]
+        }
+      }
     },
-    "favorite_youtube_playlist": {
+    "public.favorite_youtube_playlist": {
       "name": "favorite_youtube_playlist",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "integer",
+          "type": "serial",
           "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "playlist_id": {
           "name": "playlist_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         },
         "user_id": {
           "name": "user_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "sort": {
           "name": "sort",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
           "default": 0
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "now()"
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "favorite_youtube_playlist_playlist_id_youtube_playlist_id_fk": {
-          "name": "favorite_youtube_playlist_playlist_id_youtube_playlist_id_fk",
-          "tableFrom": "favorite_youtube_playlist",
-          "tableTo": "youtube_playlist",
-          "columnsFrom": [
-            "playlist_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "favorite_youtube_playlist_user_id_user_id_fk": {
-          "name": "favorite_youtube_playlist_user_id_user_id_fk",
-          "tableFrom": "favorite_youtube_playlist",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "youtube_playlist": {
+    "public.youtube_playlist": {
       "name": "youtube_playlist",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "primaryKey": true,
+          "notNull": true
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "thumbnail_url": {
           "name": "thumbnail_url",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "item_count": {
           "name": "item_count",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
+          "notNull": true,
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "integer",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
+          "notNull": true,
+          "default": "now()"
         }
       },
-      "indexes": {
-        "youtube_playlist_id_unique": {
-          "name": "youtube_playlist_id_unique",
-          "columns": [
-            "id"
-          ],
-          "isUnique": true
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "youtube_playlist_id_unique": {
+          "name": "youtube_playlist_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id"
+          ]
+        }
+      }
     },
-    "youtube_playlist_item": {
+    "public.youtube_playlist_item": {
       "name": "youtube_playlist_item",
+      "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "playlist_id": {
           "name": "playlist_id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "primaryKey": true,
+          "notNull": true
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "thumbnail_url": {
           "name": "thumbnail_url",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
+          "notNull": true,
+          "default": "now()"
         }
       },
-      "indexes": {
-        "youtube_playlist_item_id_unique": {
-          "name": "youtube_playlist_item_id_unique",
-          "columns": [
-            "id"
-          ],
-          "isUnique": true
-        }
-      },
+      "indexes": {},
       "foreignKeys": {
         "youtube_playlist_item_playlist_id_youtube_playlist_id_fk": {
           "name": "youtube_playlist_item_playlist_id_youtube_playlist_id_fk",
@@ -715,12 +707,11 @@
     }
   },
   "enums": {},
+  "schemas": {},
+  "sequences": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "internal": {
-    "indexes": {}
+    "tables": {}
   }
 }
