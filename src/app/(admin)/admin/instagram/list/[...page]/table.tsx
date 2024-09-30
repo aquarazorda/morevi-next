@@ -3,7 +3,6 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { type z } from "zod";
 import { DataTable } from "~/components/ui/data-table";
 import { type wcProductResponseSchema } from "~/server/schemas/woocommerce/product";
 import AddVideoModal from "./modal";
@@ -37,8 +36,8 @@ function extractYouTubeVideoIds(str: string): string[] {
   if (matches) {
     return matches
       .map((match) => {
-        const videoIdMatch = match.match(/v=([^&"]+)/);
-        return videoIdMatch ? videoIdMatch[1] ?? "" : "";
+        const videoIdMatch = /v=([^&"]+)/.exec(match);
+        return videoIdMatch ? (videoIdMatch[1] ?? "") : "";
       })
       .filter(Boolean);
   }

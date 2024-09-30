@@ -134,9 +134,6 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.13)
-      zod:
-        specifier: ^3.23.8
-        version: 3.23.8
     devDependencies:
       '@lucia-auth/adapter-drizzle':
         specifier: ^1.1.0

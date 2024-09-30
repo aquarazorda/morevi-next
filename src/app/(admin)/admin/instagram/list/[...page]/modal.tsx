@@ -18,8 +18,6 @@ import { Input } from "~/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -29,6 +27,8 @@ import {
 } from "~/components/ui/form";
 import { Card, CardContent } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
+import { Schema } from "@effect/schema";
+import { effectTsResolver } from "@hookform/resolvers/effect-ts";
 
 type Props = {
   isOpen: boolean;
@@ -36,20 +36,23 @@ type Props = {
   videos: string[];
 };
 
-const schema = z.object({
-  startAt: z.string().refine((v) => v.match(/^\d{2}:\d{2}$/), {
-    message: "Needs to be in the format 00:00",
-  }),
-  link: z.string().url().optional(),
-  videoId: z.string(),
+const schema = Schema.Struct({
+  startAt: Schema.String.pipe(
+    Schema.pattern(/^\d{2}:\d{2}$/),
+    Schema.annotations({
+      message: () => "Needs to be in the format 00:00",
+    }),
+  ),
+  link: Schema.optional(Schema.String.pipe(Schema.pattern(/^https:\/\/.+$/))),
+  videoId: Schema.String,
 });
 
 export default function AddVideoModal({ isOpen, setIsOpen, videos }: Props) {
   const currentVideoIndex = useRef(0);
   const [api, setApi] = useState<CarouselApi>();
 
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<Schema.Schema.Type<typeof schema>>({
+    resolver: effectTsResolver(schema),
     defaultValues: {
       startAt: "",
       link: "",

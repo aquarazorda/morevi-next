@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { effectTsResolver } from "@hookform/resolvers/effect-ts";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -14,14 +13,19 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { Schema } from "@effect/schema";
 
 export default function AddNewSearchForm() {
   const params = useParams<{ search: string }>();
   const router = useRouter();
   const form = useForm({
-    resolver: zodResolver(
-      z.object({
-        search: z.string().min(3),
+    resolver: effectTsResolver(
+      Schema.Struct({
+        search: Schema.String.pipe(
+          Schema.nonEmptyString({
+            message: () => "Search is required",
+          }),
+        ),
       }),
     ),
     defaultValues: {
