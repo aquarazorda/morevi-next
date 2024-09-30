@@ -17,7 +17,7 @@ export async function* streamToGenerator(
   }
 }
 
-export async function GeneratorComponent({
+export async function InnerGenerator({
   generator,
   fallback,
 }: {
@@ -32,8 +32,23 @@ export async function GeneratorComponent({
     <>
       {value}
       <Suspense fallback={fallback}>
-        <GeneratorComponent generator={generator} />
+        <InnerGenerator generator={generator} />
       </Suspense>
     </>
+  );
+}
+
+export function GeneratorComponent({
+  readable,
+  fallback,
+}: {
+  readable: ReadableStream<unknown>;
+  fallback?: React.ReactNode;
+}) {
+  return (
+    <InnerGenerator
+      generator={streamToGenerator(readable)}
+      fallback={fallback}
+    />
   );
 }

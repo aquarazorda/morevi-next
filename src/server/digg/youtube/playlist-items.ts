@@ -71,7 +71,7 @@ const fetchAndInsertPlaylistItems = (playlistId: string) =>
     }),
   );
 
-export const $getPlaylistItems = (playlistId: string) =>
+export const getPlaylistItemsStream = (playlistId: string) =>
   withYoutubeAuth(
     Effect.gen(function* () {
       const existingPlaylist = yield* Effect.tryPromise(() =>
@@ -83,18 +83,23 @@ export const $getPlaylistItems = (playlistId: string) =>
         }),
       ).pipe(
         Effect.flatMap(Effect.fromNullable),
-        Effect.map(({ items }) => items),
+        Effect.map(({ items }) =>
+          items.map(
+            (item) =>
+              ({
+                id: item.id,
+                title: item.title,
+                description: item.description,
+                thumbnailUrl: item.thumbnailUrl,
+              }) as const,
+          ),
+        ),
       );
 
       if (existingPlaylist.length > 0) {
-        return yield* getPlaylistItemsFromDb(playlistId);
+        return Stream.fromIterable([existingPlaylist]);
       } else {
-        const items: PlaylistItem[] = [];
-        yield* Stream.runForEach(
-          fetchAndInsertPlaylistItems(playlistId),
-          (pageItems) => Effect.sync(() => items.push(...pageItems)),
-        );
-        return items;
+        return fetchAndInsertPlaylistItems(playlistId);
       }
     }),
   );

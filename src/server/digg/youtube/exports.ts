@@ -19,6 +19,10 @@ export const getPlaylist = (id: string) =>
     }),
   ).pipe(Effect.flatMap(Effect.fromNullable));
 
+export class PlaylistEmptyError {
+  _tag = "PlaylistEmptyError";
+}
+
 export const getPlaylistItems = (id: string) =>
   Effect.gen(function* () {
     const res = yield* Effect.tryPromise(() =>
@@ -27,12 +31,12 @@ export const getPlaylistItems = (id: string) =>
       }),
     );
 
+    if (res.length === 0) {
+      yield* Effect.fail(new Error("Playlist empty"));
+    }
+
     return res;
-  }).pipe(
-    Effect.catchAll(() =>
-      Effect.succeed([] as (typeof youtubePlaylistItem.$inferSelect)[]),
-    ),
-  );
+  }).pipe(Effect.catchAll(() => Effect.fail(new PlaylistEmptyError())));
 
 export const $getUserPlaylists = withYoutubeAuth(
   Effect.gen(function* () {
