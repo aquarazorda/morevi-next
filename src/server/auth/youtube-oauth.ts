@@ -25,7 +25,8 @@ export async function getAuthUrl(redirect_uri?: string) {
   return oauth2Client.generateAuthUrl({
     access_type: "offline",
     scope: scopes,
-    redirect_uri,
+    redirect_uri: env.YOUTUBE_REDIRECT_URI,
+    state: redirect_uri,
   });
 }
 

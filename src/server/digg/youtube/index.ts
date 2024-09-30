@@ -2,7 +2,7 @@ import { Effect } from "effect";
 import { cookies } from "next/headers";
 import { oauth2Client } from "~/server/auth/youtube-oauth";
 
-class NoYoutubeCredentialsError {
+export class NoYoutubeCredentialsError {
   readonly _tag = "NoYoutubeCredentialsError";
 }
 
@@ -16,7 +16,7 @@ export const setYoutubeCredentials = (tokens?: {
     const refreshToken =
       tokens?.refresh_token ?? cookies().get("youtube_refresh_token")?.value;
 
-    if (!accessToken || !refreshToken) {
+    if (!refreshToken) {
       yield* Effect.fail(new NoYoutubeCredentialsError());
     }
 

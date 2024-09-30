@@ -25,6 +25,7 @@ export const GET = async (request: NextRequest) =>
   Effect.gen(function* () {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get("code");
+    const redirect_uri = searchParams.get("state");
 
     if (!code) {
       const authUrl = yield* Effect.promise(() => getAuthUrl());
@@ -35,7 +36,9 @@ export const GET = async (request: NextRequest) =>
     const access_token = yield* Effect.fromNullable(tokens.access_token);
     const refresh_token = yield* Effect.fromNullable(tokens.refresh_token);
 
-    const response = NextResponse.redirect(new URL("/admin/digg", request.url));
+    const response = NextResponse.redirect(
+      new URL(redirect_uri ?? "/admin", request.url),
+    );
 
     yield* setCookie(
       response,
@@ -67,11 +70,7 @@ export const GET = async (request: NextRequest) =>
   }).pipe(
     Effect.tapError(Effect.logError),
     Effect.catchAll(() =>
-      Effect.succeed(
-        NextResponse.redirect(
-          new URL("/admin/youtube/playlist-add", request.url),
-        ),
-      ),
+      Effect.succeed(NextResponse.redirect(new URL("/admin", request.url))),
     ),
     Effect.runPromise,
   );

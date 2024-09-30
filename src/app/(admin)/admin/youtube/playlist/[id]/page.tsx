@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { Effect, Stream } from "effect";
+import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { GeneratorComponent } from "~/components/utils/generator";
 import { getPlaylist, getPlaylistItems } from "~/server/digg/youtube/exports";
@@ -51,7 +52,14 @@ export default effectComponent(({ params }: { params: { id: string } }) =>
       Effect.succeed(
         <div className="flex h-full flex-col items-center justify-center gap-4">
           This playlist is not imported yet.
-          <Button>Import</Button>
+          <Button asChild>
+            <Link
+              prefetch={false}
+              href={`/admin/youtube/playlist/${params.id}/import`}
+            >
+              Import
+            </Link>
+          </Button>
         </div>,
       ),
     ),

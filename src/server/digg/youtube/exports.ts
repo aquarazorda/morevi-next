@@ -4,7 +4,6 @@ import { cache } from "react";
 import { validateRequest } from "~/server/auth/utils";
 import { getYoutubeChannelId } from "~/server/auth/youtube-oauth";
 import { db } from "~/server/db";
-import { type youtubePlaylistItem } from "~/server/db/schema";
 import { withYoutubeAuth } from "~/server/digg/youtube/auth-middleware";
 import { getUserPlaylists } from "~/server/digg/youtube/playlist";
 
@@ -12,12 +11,19 @@ export type PlaylistFavourites = Effect.Effect.Success<
   ReturnType<typeof $getFavoriteYoutubePlaylists>
 >;
 
+class PlaylistNotFoundError {
+  _tag = "PlaylistNotFoundError";
+}
+
 export const getPlaylist = (id: string) =>
   Effect.tryPromise(() =>
     db.query.youtubePlaylist.findFirst({
       where: (pl, { eq }) => eq(pl.id, id),
     }),
-  ).pipe(Effect.flatMap(Effect.fromNullable));
+  ).pipe(
+    Effect.flatMap(Effect.fromNullable),
+    Effect.catchAll(() => Effect.fail(new PlaylistNotFoundError())),
+  );
 
 export class PlaylistEmptyError {
   _tag = "PlaylistEmptyError";
