@@ -2,6 +2,7 @@ import { google } from "googleapis";
 import { env } from "~/env";
 import { Effect } from "effect";
 import { setYoutubeCredentials } from "~/server/digg/youtube";
+import { headers } from "next/headers";
 
 export const oauth2Client = new google.auth.OAuth2(
   env.YOUTUBE_CLIENT_ID,
@@ -21,12 +22,14 @@ class YoutubeChannelIdError {
   constructor(readonly message: string) {}
 }
 
-export async function getAuthUrl(redirect_uri?: string) {
+export async function getAuthUrl() {
+  const referer = headers().get("referer");
+
   return oauth2Client.generateAuthUrl({
     access_type: "offline",
     scope: scopes,
     redirect_uri: env.YOUTUBE_REDIRECT_URI,
-    state: redirect_uri,
+    state: referer ?? undefined,
   });
 }
 

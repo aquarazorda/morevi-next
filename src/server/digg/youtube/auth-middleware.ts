@@ -1,8 +1,7 @@
 import { Effect } from "effect";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { getAuthUrl } from "~/server/auth/youtube-oauth";
 import { type NoYoutubeCredentialsError, setYoutubeCredentials } from "./index";
-import { env } from "~/env";
 import { type UnknownException } from "effect/Cause";
 
 export class YoutubeAuthError {
@@ -34,15 +33,7 @@ export const withYoutubeAuth = <T, E>(
     const refreshToken = cookies().get("youtube_refresh_token")?.value;
 
     if (!refreshToken) {
-      const h = headers();
-
-      const authUrl = yield* Effect.tryPromise(() =>
-        getAuthUrl(
-          redirect_uri
-            ? `${env.NEXT_PUBLIC_APP_URL}${redirect_uri}`
-            : (h.get("referer") ?? ""),
-        ),
-      );
+      const authUrl = yield* Effect.tryPromise(getAuthUrl);
 
       return yield* Effect.fail(
         new YoutubeAuthError("Authentication required", authUrl),
@@ -54,14 +45,8 @@ export const withYoutubeAuth = <T, E>(
     return yield* operation.pipe(
       Effect.catchAll((error) =>
         Effect.gen(function* () {
-          const h = headers();
-          const authUrl = yield* Effect.tryPromise(() =>
-            getAuthUrl(
-              redirect_uri
-                ? `${env.NEXT_PUBLIC_APP_URL}${redirect_uri}`
-                : (h.get("referer") ?? ""),
-            ),
-          );
+          const authUrl = yield* Effect.tryPromise(getAuthUrl);
+
           if (
             error instanceof Error &&
             error.message.includes("invalid_grant")

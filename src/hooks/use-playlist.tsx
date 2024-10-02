@@ -8,9 +8,11 @@ import React, {
   use,
 } from "react";
 import { type Playlist } from "~/server/db/types";
+import { type YoutubePlaylistInfo } from "~/server/digg/youtube/playlist";
 
 type PlaylistContextType = {
   playlists: Playlist[];
+  youtubePlaylists?: YoutubePlaylistInfo[];
   updatePlaylist: (id: string, updates: Partial<Playlist>) => void;
   deletePlaylist: (id: string) => void;
 };
@@ -26,11 +28,14 @@ type OptimisticAction =
 export function PlaylistProvider({
   children,
   playlistsPromise,
+  youtubePlaylistsPromise,
 }: {
   children: React.ReactNode;
   playlistsPromise: Promise<Playlist[]>;
+  youtubePlaylistsPromise: Promise<YoutubePlaylistInfo[] | undefined>;
 }) {
   const initialPlaylists = use(playlistsPromise);
+  const youtubePlaylists = use(youtubePlaylistsPromise);
 
   const [playlists, setOptimisticPlaylists] = useOptimistic(
     initialPlaylists,
@@ -61,6 +66,7 @@ export function PlaylistProvider({
   const value = useMemo(
     () => ({
       playlists,
+      youtubePlaylists,
       updatePlaylist,
       deletePlaylist,
     }),

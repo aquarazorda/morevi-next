@@ -8,6 +8,7 @@ import {
   uuid,
   index,
   uniqueIndex,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { user } from "~/server/db/schema/user";
 
@@ -51,21 +52,26 @@ export const songs = pgTable(
   }),
 );
 
+const fromEnum = pgEnum("from", ["youtube", "local", "discogs", "spotify"]);
+
 export const playlists = pgTable(
   "playlists",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     name: text("name").notNull(),
-    playlistUrl: text("playlist_url"),
+    externalId: text("external_id").notNull(),
     coverUrl: text("cover_url"),
+    from: fromEnum("from").notNull(),
     user: text("user").references(() => user.id),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
     nameIndex: index("idx_playlists_name").on(table.name),
+    fromIndex: index("idx_playlists_from").on(table.from),
     userIndex: index("idx_playlists_user").on(table.user),
     createdAtIndex: index("idx_playlists_created_at").on(table.createdAt),
+    externalIdIndex: index("idx_playlists_external_id").on(table.externalId),
   }),
 );
 

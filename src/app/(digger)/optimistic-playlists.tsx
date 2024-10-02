@@ -1,7 +1,14 @@
 "use client";
 
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { Plus, MoreVertical, Trash } from "lucide-react";
+import {
+  Plus,
+  MoreVertical,
+  Trash,
+  RotateCcw,
+  PlugZap,
+  Zap,
+} from "lucide-react";
 import { useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -15,12 +22,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { type Playlist } from "~/server/db/types";
 import { SearchInput } from "./search";
+import { redirectToYoutubeAuth } from "~/lib/actions/youtube";
+import { Badge } from "~/components/ui/badge";
 
 const isProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === "production";
 
-function PlaylistRow({ playlist }: { playlist: Playlist }) {
+function PlaylistRow({
+  playlist,
+}: {
+  playlist: { id: string; name: string; itemCount?: number };
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { deletePlaylist } = usePlaylist();
@@ -40,16 +52,17 @@ function PlaylistRow({ playlist }: { playlist: Playlist }) {
   return (
     <li className="group relative">
       <Link
-        prefetch={true}
+        prefetch={false}
         href={`/p/${playlist.id}`}
-        className={`block cursor-pointer px-4 py-1 text-[#d1d5db] hover:bg-[#1A1A1A] focus:outline-none focus:ring-[0.5px] focus:ring-gray-400 ${
+        className={`flex cursor-pointer items-center justify-between px-3 py-1 text-[#d1d5db] hover:bg-[#1A1A1A] focus:outline-none focus:ring-[0.5px] focus:ring-gray-400 ${
           pathname === `/p/${playlist.id}` ? "bg-[#1A1A1A]" : ""
         }`}
         tabIndex={0}
       >
         {playlist.name}
+        <Badge variant="outline">{playlist.itemCount}</Badge>
       </Link>
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 transform opacity-0 group-hover:opacity-100">
+      {/* <div className="absolute right-2 top-1/2 -translate-y-1/2 transform opacity-0 group-hover:opacity-100">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -72,13 +85,13 @@ function PlaylistRow({ playlist }: { playlist: Playlist }) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </div> */}
     </li>
   );
 }
 
 export function OptimisticPlaylists() {
-  const { playlists, updatePlaylist } = usePlaylist();
+  const { playlists, updatePlaylist, youtubePlaylists } = usePlaylist();
   const playlistsContainerRef = useRef<HTMLUListElement>(null);
   const pathname = usePathname();
   const router = useRouter();
@@ -122,34 +135,54 @@ export function OptimisticPlaylists() {
           </Link>
         </div>
         <div className="mb-4 flex items-center justify-between">
-          <Link
-            href="/"
-            className="text-xs font-semibold text-gray-400 transition-colors hover:text-white"
-          >
-            Playlists
-          </Link>
-          <form action={addPlaylistAction}>
-            <Button
-              disabled={isProduction}
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5"
-              type="submit"
-            >
-              <Plus className="h-3 w-3 text-gray-400" />
-              <span className="sr-only">Add new playlist</span>
-            </Button>
-          </form>
+          <span className="text-xs font-semibold text-gray-400 transition-colors">
+            YouTube
+          </span>
+          {!youtubePlaylists ? (
+            <form action={redirectToYoutubeAuth}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5"
+                type="submit"
+              >
+                <span>
+                  <Zap className="size-3 text-gray-400" />
+                  <span className="sr-only">Connect</span>
+                </span>
+              </Button>
+            </form>
+          ) : (
+            <form action={addPlaylistAction}>
+              <Button
+                disabled={isProduction}
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5"
+                type="submit"
+              >
+                <RotateCcw className="h-3 w-3 text-gray-400" />
+                <span className="sr-only">Reload YouTube playlists</span>
+              </Button>
+            </form>
+          )}
         </div>
       </div>
-      <ScrollArea className="h-[calc(100dvh-180px)]">
+      <ScrollArea className="h-[calc(100dvh-221px)]">
         <ul
           ref={playlistsContainerRef}
           className="mt-[1px] space-y-0.5 text-xs"
           onKeyDown={(e) => handleKeyNavigation(e, "sidebar")}
         >
-          {playlists.map((playlist) => (
-            <PlaylistRow key={playlist.id} playlist={playlist} />
+          {youtubePlaylists?.map((playlist) => (
+            <PlaylistRow
+              key={playlist.externalId}
+              playlist={{
+                id: playlist.externalId,
+                name: playlist.name,
+                itemCount: playlist.itemCount,
+              }}
+            />
           ))}
         </ul>
       </ScrollArea>

@@ -1,49 +1,57 @@
 import { Schema } from "@effect/schema";
 import { Effect } from "effect";
 import { youtube } from "~/server/auth/youtube-oauth";
+import { setYoutubeCredentials } from "~/server/digg/youtube";
 
 export const PlaylistInfoSchema = Schema.Struct({
-  id: Schema.String,
-  title: Schema.String,
+  externalId: Schema.String,
+  name: Schema.String,
   description: Schema.String,
-  thumbnailUrl: Schema.String,
+  coverUrl: Schema.String,
   itemCount: Schema.Number,
   publishedAt: Schema.String,
 });
 
-export type PlaylistInfo = Schema.Schema.Type<typeof PlaylistInfoSchema>;
+export type YoutubePlaylistInfo = Schema.Schema.Type<typeof PlaylistInfoSchema>;
 
 const fetchUserPlaylists = (pageToken?: string) =>
-  Effect.tryPromise(() =>
-    youtube.playlists.list({
-      part: ["snippet", "contentDetails"],
-      mine: true,
-      maxResults: 50,
-      pageToken,
-    }),
-  );
+  Effect.gen(function* () {
+    const response = yield* Effect.tryPromise(() =>
+      youtube.playlists.list({
+        part: ["snippet", "contentDetails"],
+        mine: true,
+        maxResults: 50,
+        pageToken,
+      }),
+    );
 
-export const getUserPlaylists = Effect.gen(function* () {
-  let playlists: PlaylistInfo[] = [];
+    const playlists = yield* Effect.forEach(response.data.items ?? [], (item) =>
+      Schema.decodeUnknown(PlaylistInfoSchema)({
+        externalId: item.id ?? "",
+        name: item.snippet?.title ?? "",
+        description: item.snippet?.description ?? "",
+        coverUrl: item.snippet?.thumbnails?.default?.url ?? "",
+        itemCount: item.contentDetails?.itemCount ?? 0,
+        publishedAt: item.snippet?.publishedAt ?? "",
+      } satisfies YoutubePlaylistInfo),
+    );
+    return {
+      nextPageToken: response.data.nextPageToken ?? undefined,
+      playlists,
+    };
+  });
+
+export const getUserYoutubePlaylists = Effect.gen(function* () {
+  let playlists: YoutubePlaylistInfo[] = [];
   let nextPageToken: string | undefined;
+  yield* setYoutubeCredentials();
 
   do {
-    const response = yield* fetchUserPlaylists(nextPageToken);
-    const newPlaylists = yield* Effect.forEach(
-      response.data.items ?? [],
-      (item) =>
-        Schema.decodeUnknown(PlaylistInfoSchema)({
-          id: item.id ?? "",
-          title: item.snippet?.title ?? "",
-          description: item.snippet?.description ?? "",
-          thumbnailUrl: item.snippet?.thumbnails?.default?.url ?? "",
-          itemCount: item.contentDetails?.itemCount ?? 0,
-          publishedAt: item.snippet?.publishedAt ?? "",
-        }),
-    );
+    const { playlists: newPlaylists, nextPageToken: newNextPageToken } =
+      yield* fetchUserPlaylists(nextPageToken);
     playlists = [...playlists, ...newPlaylists];
-    nextPageToken = response.data.nextPageToken ?? undefined;
+    nextPageToken = newNextPageToken;
   } while (nextPageToken);
 
-  return playlists.sort((a, b) => a.title.localeCompare(b.title));
+  return playlists.sort((a, b) => a.name.localeCompare(b.name));
 });
