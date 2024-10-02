@@ -25,12 +25,15 @@ import {
 import { SearchInput } from "./search";
 import { redirectToYoutubeAuth } from "~/lib/actions/youtube";
 import { Badge } from "~/components/ui/badge";
+import { type PlaylistType } from "~/server/db/schema/track";
 
 const isProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === "production";
 
 function PlaylistRow({
+  type,
   playlist,
 }: {
+  type: PlaylistType;
   playlist: { id: string; name: string; itemCount?: number };
 }) {
   const pathname = usePathname();
@@ -53,9 +56,9 @@ function PlaylistRow({
     <li className="group relative">
       <Link
         prefetch={false}
-        href={`/p/${playlist.id}`}
+        href={`/digger/p/${type}/${playlist.id}`}
         className={`flex cursor-pointer items-center justify-between px-3 py-1 text-[#d1d5db] hover:bg-[#1A1A1A] focus:outline-none focus:ring-[0.5px] focus:ring-gray-400 ${
-          pathname === `/p/${playlist.id}` ? "bg-[#1A1A1A]" : ""
+          pathname === `/digger/p/${type}/${playlist.id}` ? "bg-[#1A1A1A]" : ""
         }`}
         tabIndex={0}
       >
@@ -177,6 +180,7 @@ export function OptimisticPlaylists() {
           {youtubePlaylists?.map((playlist) => (
             <PlaylistRow
               key={playlist.externalId}
+              type={playlist.type}
               playlist={{
                 id: playlist.externalId,
                 name: playlist.name,

@@ -11,9 +11,9 @@ import { eq } from "drizzle-orm";
 
 const PlaylistItemSchema = Schema.Struct({
   id: Schema.String,
-  title: Schema.String,
+  name: Schema.String,
   description: Schema.String,
-  thumbnailUrl: Schema.String,
+  imageUrl: Schema.String,
 });
 
 type PlaylistItem = Schema.Schema.Type<typeof PlaylistItemSchema>;
@@ -60,10 +60,10 @@ const fetchAndInsertPlaylistItems = (playlistId: string) =>
       const items = yield* Effect.forEach(response.data.items ?? [], (item) =>
         Schema.decodeUnknown(PlaylistItemSchema)({
           id: item.id ?? "",
-          title: item.snippet?.title ?? "",
+          name: item.snippet?.title ?? "",
           description: item.snippet?.description ?? "",
-          thumbnailUrl: item.snippet?.thumbnails?.default?.url ?? "",
-        }),
+          imageUrl: item.snippet?.thumbnails?.default?.url ?? "",
+        } satisfies PlaylistItem),
       );
       // yield* insertPlaylistItems(items, playlistId);
 

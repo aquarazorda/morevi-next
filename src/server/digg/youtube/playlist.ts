@@ -1,6 +1,7 @@
 import { Schema } from "@effect/schema";
 import { Effect } from "effect";
 import { youtube } from "~/server/auth/youtube-oauth";
+import { playlistType } from "~/server/db/schema/track";
 import { setYoutubeCredentials } from "~/server/digg/youtube";
 
 export const PlaylistInfoSchema = Schema.Struct({
@@ -10,6 +11,7 @@ export const PlaylistInfoSchema = Schema.Struct({
   coverUrl: Schema.String,
   itemCount: Schema.Number,
   publishedAt: Schema.String,
+  type: Schema.Literal(...playlistType),
 });
 
 export type YoutubePlaylistInfo = Schema.Schema.Type<typeof PlaylistInfoSchema>;
@@ -33,6 +35,7 @@ const fetchUserPlaylists = (pageToken?: string) =>
         coverUrl: item.snippet?.thumbnails?.default?.url ?? "",
         itemCount: item.contentDetails?.itemCount ?? 0,
         publishedAt: item.snippet?.publishedAt ?? "",
+        type: "youtube",
       } satisfies YoutubePlaylistInfo),
     );
     return {

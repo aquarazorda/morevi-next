@@ -30,7 +30,8 @@ export const withYoutubeAuth = <T, E>(
   never
 > =>
   Effect.gen(function* () {
-    const refreshToken = cookies().get("youtube_refresh_token")?.value;
+    const cs = yield* Effect.tryPromise(cookies);
+    const refreshToken = cs.get("youtube_refresh_token")?.value;
 
     if (!refreshToken) {
       const authUrl = yield* Effect.tryPromise(getAuthUrl);

@@ -52,7 +52,10 @@ export const songs = pgTable(
   }),
 );
 
-const fromEnum = pgEnum("from", ["youtube", "local", "discogs", "spotify"]);
+export const playlistType = ["youtube", "local", "discogs", "spotify"] as const;
+const playlistTypeEnum = pgEnum("type", playlistType);
+
+export type PlaylistType = (typeof playlistType)[number];
 
 export const playlists = pgTable(
   "playlists",
@@ -61,14 +64,14 @@ export const playlists = pgTable(
     name: text("name").notNull(),
     externalId: text("external_id").notNull(),
     coverUrl: text("cover_url"),
-    from: fromEnum("from").notNull(),
+    type: playlistTypeEnum("type").notNull(),
     user: text("user").references(() => user.id),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
     nameIndex: index("idx_playlists_name").on(table.name),
-    fromIndex: index("idx_playlists_from").on(table.from),
+    typeIndex: index("idx_playlists_type").on(table.type),
     userIndex: index("idx_playlists_user").on(table.user),
     createdAtIndex: index("idx_playlists_created_at").on(table.createdAt),
     externalIdIndex: index("idx_playlists_external_id").on(table.externalId),
