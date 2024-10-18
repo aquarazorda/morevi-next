@@ -10,14 +10,18 @@ import effectComponent from "~/server/effect";
 const StreamablePlaylist = effectComponent(({ id }: { id: string }) =>
   Effect.gen(function* () {
     const playlistStream = yield* getPlaylistItemsStream(id);
-    const readable = playlistStream.pipe(
-      Stream.map((items) =>
-        items.flatMap((item) => <div key={item.id}>{item.title}</div>),
-      ),
-      Stream.toReadableStream,
-    );
 
-    return <GeneratorComponent readable={readable} />;
+    return (
+      <GeneratorComponent stream={playlistStream}>
+        {(items) => (
+          <div>
+            {items.map((item) => (
+              <div key={item.id}>{item.title}</div>
+            ))}
+          </div>
+        )}
+      </GeneratorComponent>
+    );
   }),
 );
 

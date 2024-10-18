@@ -1,71 +1,76 @@
-import * as S from "@effect/schema/Schema";
+import { Schema } from "@effect/schema";
 
-export const discogsFolderSchema = S.struct({
-  id: S.number,
-  name: S.string,
-  count: S.number,
+export const discogsFolderSchema = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String,
+  count: Schema.Number,
 });
 
-export const foldersResponseSchema = S.struct({
-  folders: S.array(discogsFolderSchema),
-}).pipe(
-  S.transform(
-    S.array(discogsFolderSchema),
-    ({ folders }) => folders,
-    (folders) => ({ folders }),
-  ),
+export const foldersResponseSchema = Schema.transform(
+  Schema.Struct({
+    folders: Schema.Array(discogsFolderSchema),
+  }),
+  Schema.Array(discogsFolderSchema),
+  {
+    strict: true,
+    decode: ({ folders }) => folders,
+    encode: (folders) => ({ folders }),
+  },
 );
 
-export const noteSchema = S.struct({
-  field_id: S.number,
-  value: S.string,
+export const noteSchema = Schema.Struct({
+  field_id: Schema.Number,
+  value: Schema.String,
 });
 
-export const basicInformationSchema = S.struct({
-  id: S.number,
-  title: S.string,
-  artists: S.array(
-    S.struct({
-      name: S.string,
+export const basicInformationSchema = Schema.Struct({
+  id: Schema.Number,
+  title: Schema.String,
+  artists: Schema.Array(
+    Schema.Struct({
+      name: Schema.String,
     }),
   ),
-  thumb: S.optional(S.string),
-  cover_image: S.optional(S.string),
-  year: S.optional(S.number),
-  genres: S.optional(S.array(S.string)),
-  styles: S.optional(S.array(S.string)),
-  labels: S.array(
-    S.struct({
-      id: S.number,
-      name: S.string,
-      catno: S.string,
+  thumb: Schema.optional(Schema.String),
+  cover_image: Schema.optional(Schema.String),
+  year: Schema.optional(Schema.Number),
+  genres: Schema.optional(Schema.Array(Schema.String)),
+  styles: Schema.optional(Schema.Array(Schema.String)),
+  labels: Schema.Array(
+    Schema.Struct({
+      id: Schema.Number,
+      name: Schema.String,
+      catno: Schema.String,
     }),
   ),
 });
 
-const releaseSchema = S.struct({
+const releaseSchema = Schema.Struct({
   basic_information: basicInformationSchema,
-  notes: S.optional(S.array(noteSchema)),
+  notes: Schema.optional(Schema.Array(noteSchema)),
 });
 
-export const folderReleasesSchema = S.struct({
-  pagination: S.struct({
-    page: S.number,
-    pages: S.number,
-    per_page: S.number,
-    items: S.number,
+export const folderReleasesSchema = Schema.Struct({
+  pagination: Schema.Struct({
+    page: Schema.Number,
+    pages: Schema.Number,
+    per_page: Schema.Number,
+    items: Schema.Number,
   }),
-  releases: S.array(
-    releaseSchema.pipe(
-      S.transform(
-        S.struct({
-          ...basicInformationSchema.fields,
-          notes: S.optional(S.array(noteSchema)),
+  releases: Schema.Array(
+    Schema.transform(
+      releaseSchema,
+      Schema.Struct({
+        ...basicInformationSchema.fields,
+        notes: Schema.optional(Schema.Array(noteSchema)),
+      }),
+      {
+        decode: ({ basic_information, notes }) => ({
+          ...basic_information,
+          notes,
         }),
-        ({ basic_information, notes }) =>
-          ({ ...basic_information, notes }) as const,
-        ({ notes, ...rest }) => ({ basic_information: rest, notes }),
-      ),
+        encode: ({ notes, ...rest }) => ({ basic_information: rest, notes }),
+      },
     ),
   ),
 });

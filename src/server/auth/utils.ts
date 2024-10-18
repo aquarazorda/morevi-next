@@ -46,17 +46,21 @@ export const getExistingUser = (username: string) =>
   );
 
 export const createSessionCookie = (session?: Session | null) =>
-  Effect.sync(() => {
+  Effect.gen(function* () {
     try {
       const sessionCookie = session
         ? lucia.createSessionCookie(session.id)
         : lucia.createBlankSessionCookie();
 
-      return cookies().set(
-        sessionCookie.name,
-        sessionCookie.value,
-        sessionCookie.attributes,
-      );
+      yield* Effect.tryPromise(async () =>
+        (await cookies()).set(
+          sessionCookie.name,
+          sessionCookie.value,
+          sessionCookie.attributes,
+        ),
+      ).pipe(Effect.catchAll(() => Effect.succeed("Cookies set")));
+
+      return sessionCookie;
     } catch {}
   });
 
@@ -71,8 +75,11 @@ export const createSession = (userId: string) =>
 
 export const validateRequest = cache((isAdmin?: boolean) =>
   pipe(
-    cookies().get(lucia.sessionCookieName)?.value ?? undefined,
-    Effect.fromNullable,
+    Effect.tryPromise(
+      async () =>
+        (await cookies()).get(lucia.sessionCookieName)?.value ?? undefined,
+    ),
+    Effect.flatMap(Effect.fromNullable),
     Effect.flatMap((sessionId) =>
       Effect.tryPromise(() => lucia.validateSession(sessionId)),
     ),

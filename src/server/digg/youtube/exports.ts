@@ -5,7 +5,6 @@ import { validateRequest } from "~/server/auth/utils";
 import { getYoutubeChannelId } from "~/server/auth/youtube-oauth";
 import { db } from "~/server/db";
 import { withYoutubeAuth } from "~/server/digg/youtube/auth-middleware";
-import { getUserPlaylists } from "~/server/digg/youtube/playlist";
 
 export type PlaylistFavourites = Effect.Effect.Success<
   ReturnType<typeof $getFavoriteYoutubePlaylists>
@@ -49,7 +48,7 @@ export const $getUserPlaylists = withYoutubeAuth(
     const channelId = yield* getYoutubeChannelId();
     const res = yield* Effect.tryPromise(
       unstable_cache(
-        () => getUserPlaylists.pipe(Effect.runPromise),
+        () => getPlaylists.pipe(Effect.runPromise),
         ["playlist", channelId],
         {
           tags: ["playlist"],

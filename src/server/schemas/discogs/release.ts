@@ -1,27 +1,27 @@
-import * as S from "@effect/schema/Schema";
 import { removeNumberInParentheses } from "~/lib/utils";
+import { Schema } from "@effect/schema";
 
-export const addReleaseSchema = S.struct({
-  id: S.string,
-  title: S.string,
-  image: S.string.pipe(S.startsWith("http")),
-  artists: S.optional(S.array(S.string)),
-  labelId: S.string,
-  year: S.number,
-  catno: S.optional(S.string),
-  label: S.optional(S.string),
-  tracks: S.optional(
-    S.array(
-      S.struct({
-        position: S.string,
-        title: S.string,
-        duration: S.optional(S.string),
-        link: S.optional(S.string),
+export const addReleaseSchema = Schema.Struct({
+  id: Schema.String,
+  title: Schema.String,
+  image: Schema.String.pipe(Schema.startsWith("http")),
+  artists: Schema.optional(Schema.Array(Schema.String)),
+  labelId: Schema.String,
+  year: Schema.Number,
+  catno: Schema.optional(Schema.String),
+  label: Schema.optional(Schema.String),
+  tracks: Schema.optional(
+    Schema.Array(
+      Schema.Struct({
+        position: Schema.String,
+        title: Schema.String,
+        duration: Schema.optional(Schema.String),
+        link: Schema.optional(Schema.String),
       }),
     ),
   ),
-  stock_quantity: S.number,
-  condition: S.literal(
+  stock_quantity: Schema.Number,
+  condition: Schema.Literal(
     "Mint (M)",
     "Near Mint (NM or M-)",
     "Very Good Plus (VG+)",
@@ -31,59 +31,61 @@ export const addReleaseSchema = S.struct({
     "Fair (F)",
     "Poor (P)",
   ),
-  status: S.literal("draft", "active"),
-  price: S.optional(S.string),
-  category: S.array(S.number),
+  status: Schema.Literal("draft", "active"),
+  price: Schema.optional(Schema.String),
+  category: Schema.Array(Schema.Number),
 });
 
-export const discogsLabelSchema = S.struct({
-  id: S.number,
-  name: S.string.pipe(
-    S.transform(S.string, removeNumberInParentheses, (name) => name),
-  ),
-  catno: S.optional(S.string),
+export const discogsLabelSchema = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.transform(Schema.String, Schema.String, {
+    decode: (name) => removeNumberInParentheses(name),
+    encode: (name) => name,
+  }),
+  catno: Schema.optional(Schema.String),
 });
 
-export const releaseImages = S.optional(
-  S.array(
-    S.struct({
-      type: S.literal("primary", "secondary"),
-      uri: S.string.pipe(S.startsWith("http")),
+export const releaseImages = Schema.optional(
+  Schema.Array(
+    Schema.Struct({
+      type: Schema.Literal("primary", "secondary"),
+      uri: Schema.String.pipe(Schema.startsWith("http")),
     }),
   ),
 );
 
-export const discogsTracklistSchema = S.optional(
-  S.array(
-    S.struct({
-      position: S.string,
-      title: S.string,
-      duration: S.optional(S.string),
+export const discogsTracklistSchema = Schema.optional(
+  Schema.Array(
+    Schema.Struct({
+      position: Schema.String,
+      title: Schema.String,
+      duration: Schema.optional(Schema.String),
     }),
   ),
 );
 
-export const releaseSchema = S.struct({
-  id: S.number,
-  year: S.number,
-  title: S.string,
-  artists: S.array(
-    S.struct({
-      name: S.string.pipe(
-        S.transform(S.string, removeNumberInParentheses, (name) => name),
-      ),
+export const releaseSchema = Schema.Struct({
+  id: Schema.Number,
+  year: Schema.Number,
+  title: Schema.String,
+  artists: Schema.Array(
+    Schema.Struct({
+      name: Schema.transform(Schema.String, Schema.String, {
+        decode: (name) => removeNumberInParentheses(name),
+        encode: (name) => name,
+      }),
     }),
   ),
-  labels: S.array(discogsLabelSchema),
-  genres: S.optional(S.array(S.string)),
-  styles: S.optional(S.array(S.string)),
+  labels: Schema.Array(discogsLabelSchema),
+  genres: Schema.optional(Schema.Array(Schema.String)),
+  styles: Schema.optional(Schema.Array(Schema.String)),
   tracklist: discogsTracklistSchema,
   images: releaseImages,
-  videos: S.optional(
-    S.array(
-      S.struct({
-        uri: S.string.pipe(S.startsWith("http")),
-        title: S.string,
+  videos: Schema.optional(
+    Schema.Array(
+      Schema.Struct({
+        uri: Schema.String.pipe(Schema.startsWith("http")),
+        title: Schema.String,
       }),
     ),
   ),

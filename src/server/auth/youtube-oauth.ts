@@ -23,7 +23,7 @@ class YoutubeChannelIdError {
 }
 
 export async function getAuthUrl() {
-  const referer = headers().get("referer");
+  const referer = (await headers()).get("referer");
 
   return oauth2Client.generateAuthUrl({
     access_type: "offline",

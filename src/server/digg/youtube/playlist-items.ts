@@ -3,17 +3,14 @@ import { Effect, Stream, Option } from "effect";
 import { youtube } from "~/server/auth/youtube-oauth";
 import { withYoutubeAuth } from "~/server/digg/youtube/auth-middleware";
 import { db } from "~/server/db";
-import {
-  youtubePlaylist,
-  youtubePlaylistItem,
-} from "~/server/db/schema/youtube";
+import { youtubePlaylist } from "~/server/db/schema/youtube";
 import { eq } from "drizzle-orm";
 
 const PlaylistItemSchema = Schema.Struct({
   id: Schema.String,
-  name: Schema.String,
+  title: Schema.String,
   description: Schema.String,
-  imageUrl: Schema.String,
+  thumbnailUrl: Schema.String,
 });
 
 type PlaylistItem = Schema.Schema.Type<typeof PlaylistItemSchema>;
@@ -30,27 +27,27 @@ const fetchPlaylistItems = (playlistId: string, pageToken?: string) =>
   );
 
 // Function to get playlist items from the database
-const getPlaylistItemsFromDb = (playlistId: string) =>
-  Effect.tryPromise(() =>
-    db
-      .select()
-      .from(youtubePlaylistItem)
-      .where(eq(youtubePlaylistItem.id, playlistId)),
-  );
+// const getPlaylistItemsFromDb = (playlistId: string) =>
+//   Effect.tryPromise(() =>
+//     db
+//       .select()
+//       .from(youtubePlaylistItem)
+//       .where(eq(youtubePlaylistItem.id, playlistId)),
+//   );
 
 // Function to insert playlist items into the database
-const insertPlaylistItems = (items: PlaylistItem[], playlistId: string) =>
-  Effect.tryPromise(() =>
-    db
-      .insert(youtubePlaylistItem)
-      .values(
-        items.map((item) => ({
-          ...item,
-          playlistId,
-        })),
-      )
-      .onConflictDoNothing(),
-  );
+// const insertPlaylistItems = (items: PlaylistItem[], playlistId: string) =>
+//   Effect.tryPromise(() =>
+//     db
+//       .insert(youtubePlaylistItem)
+//       .values(
+//         items.map((item) => ({
+//           ...item,
+//           playlistId,
+//         })),
+//       )
+//       .onConflictDoNothing(),
+//   );
 
 // Stream to fetch and insert playlist items
 const fetchAndInsertPlaylistItems = (playlistId: string) =>
@@ -60,9 +57,9 @@ const fetchAndInsertPlaylistItems = (playlistId: string) =>
       const items = yield* Effect.forEach(response.data.items ?? [], (item) =>
         Schema.decodeUnknown(PlaylistItemSchema)({
           id: item.id ?? "",
-          name: item.snippet?.title ?? "",
+          title: item.snippet?.title ?? "",
           description: item.snippet?.description ?? "",
-          imageUrl: item.snippet?.thumbnails?.default?.url ?? "",
+          thumbnailUrl: item.snippet?.thumbnails?.default?.url ?? "",
         } satisfies PlaylistItem),
       );
       // yield* insertPlaylistItems(items, playlistId);

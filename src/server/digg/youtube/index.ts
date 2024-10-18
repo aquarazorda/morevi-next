@@ -11,10 +11,17 @@ export const setYoutubeCredentials = (tokens?: {
   refresh_token: string;
 }) =>
   Effect.gen(function* () {
-    const accessToken =
-      tokens?.access_token ?? cookies().get("youtube_access_token")?.value;
-    const refreshToken =
-      tokens?.refresh_token ?? cookies().get("youtube_refresh_token")?.value;
+    const accessToken = yield* Effect.tryPromise(
+      async () =>
+        tokens?.access_token ??
+        (await cookies()).get("youtube_access_token")?.value,
+    );
+
+    const refreshToken = yield* Effect.tryPromise(
+      async () =>
+        tokens?.refresh_token ??
+        (await cookies()).get("youtube_refresh_token")?.value,
+    );
 
     if (!refreshToken) {
       yield* Effect.fail(new NoYoutubeCredentialsError());

@@ -1,34 +1,31 @@
-import * as S from "@effect/schema/Schema";
+import { Schema } from "@effect/schema";
 import { removeNumberInParentheses } from "~/lib/utils";
 
-export const discogsSearchResultSchema = S.struct({
-  catno: S.optional(S.string),
-  cover_image: S.optional(S.string),
-  thumb: S.optional(S.string),
-  genre: S.optional(S.array(S.string)),
-  style: S.optional(S.array(S.string)),
-  id: S.number,
-  title: S.string.pipe(
-    S.transform(
-      S.string,
-      (title) =>
-        title
-          .split("-")
-          .map((s, i) => (i === 0 ? removeNumberInParentheses(s) : s))
-          .join(" - "),
-      (transformedTitle) => transformedTitle,
-    ),
-  ),
-  label: S.array(S.string),
-  year: S.optional(S.string),
+export const discogsSearchResultSchema = Schema.Struct({
+  catno: Schema.optional(Schema.String),
+  cover_image: Schema.optional(Schema.String),
+  thumb: Schema.optional(Schema.String),
+  genre: Schema.optional(Schema.Array(Schema.String)),
+  style: Schema.optional(Schema.Array(Schema.String)),
+  id: Schema.Number,
+  title: Schema.transform(Schema.String, Schema.String, {
+    decode: (title) =>
+      title
+        .split("-")
+        .map((s, i) => (i === 0 ? removeNumberInParentheses(s) : s))
+        .join(" - "),
+    encode: (title) => title,
+  }),
+  label: Schema.Array(Schema.String),
+  year: Schema.optional(Schema.String),
 });
 
-export const discogsSearchResultsSchema = S.struct({
-  pagination: S.struct({
-    page: S.number,
-    pages: S.number,
-    per_page: S.number,
-    items: S.number,
+export const discogsSearchResultsSchema = Schema.Struct({
+  pagination: Schema.Struct({
+    page: Schema.Number,
+    pages: Schema.Number,
+    per_page: Schema.Number,
+    items: Schema.Number,
   }),
-  results: S.array(discogsSearchResultSchema),
+  results: Schema.Array(discogsSearchResultSchema),
 });
