@@ -34,7 +34,9 @@
     "@tanstack/match-sorter-utils": "^8.19.4",
     "@tanstack/react-table": "^8.20.5",
     "@types/pg": "^8.11.10",
+    "@types/xlsx": "^0.0.36",
     "@woocommerce/woocommerce-rest-api": "^1.0.1",
+    "babel-plugin-react-compiler": "19.0.0-beta-9ee70a1-20241017",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -50,14 +52,14 @@
     "oslo": "^1.2.1",
     "pg": "^8.13.0",
     "react": "19.0.0-rc-7771d3a7-20240827",
-    "react-dom": "19.0.0-rc-7771d3a7-20240827",
     "react-day-picker": "^9.1.4",
+    "react-dom": "19.0.0-rc-7771d3a7-20240827",
     "react-hook-form": "^7.53.0",
     "slsk-client": "^1.1.0",
     "sonner": "^1.5.0",
-    "babel-plugin-react-compiler": "19.0.0-beta-9ee70a1-20241017",
     "tailwind-merge": "^2.5.4",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@lucia-auth/adapter-drizzle": "^1.1.0",

@@ -13,7 +13,7 @@ import * as ParseResult from "@effect/schema/ParseResult";
 
 const foldersPath = "/users/MoreviTBS/collection/folders";
 
-const getDiscogs = <A, I>(path: string, schema: S.Schema<A, I, never>) =>
+export const getDiscogs = <A, I>(path: string, schema: S.Schema<A, I, never>) =>
   pipe(
     Effect.tryPromise({
       try: () =>
@@ -26,7 +26,13 @@ const getDiscogs = <A, I>(path: string, schema: S.Schema<A, I, never>) =>
       catch: () => "Error fetching data",
     }),
     Effect.flatMap(ParseResult.decodeUnknown(schema)),
-    Effect.mapError(() => "Error parsing data"),
+    Effect.mapError((e) => {
+      if (typeof e === "string") {
+        return e;
+      }
+
+      return (e.actual as { message: string }).message + "\n" + path;
+    }),
   );
 
 export const getFolders = () =>

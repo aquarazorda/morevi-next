@@ -14,11 +14,11 @@ const ServerSchema = Schema.Struct({
   YOUTUBE_CLIENT_ID: Schema.String,
   YOUTUBE_CLIENT_SECRET: Schema.String,
   YOUTUBE_REDIRECT_URI: Schema.String,
-  NODE_ENV: Schema.Union(
+  NODE_ENV: Schema.optional(Schema.Union(
     Schema.Literal("development"),
     Schema.Literal("test"),
     Schema.Literal("production")
-  )
+  ))
 })
 
 // Define schema for client-side environment variables
