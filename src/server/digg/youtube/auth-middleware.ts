@@ -61,9 +61,9 @@ export const withYoutubeAuth = <T, E>(
       ),
     );
   }).pipe(
-    // @ts-expect-error effect problem
+    // @ts-ignore
     Effect.catchTag("YoutubeAuthError", (cause) =>
-      // @ts-expect-error effect problem
+      // @ts-ignore
       Effect.fail(new RedirectError(cause.authUrl as string)),
     ),
   );

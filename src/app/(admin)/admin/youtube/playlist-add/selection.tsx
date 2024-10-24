@@ -15,7 +15,7 @@ const Item = ({ id }: { id: string }) => {
     use(PlaylistsContext);
 
   const playlist = useMemo(
-    () => playlists.find((p) => p.id === id),
+    () => playlists.find((p) => p.externalId === id),
     [id, playlists],
   );
 
@@ -36,7 +36,7 @@ const Item = ({ id }: { id: string }) => {
       className="group h-8 cursor-pointer"
       onClick={() => togglePlaylist(id)}
     >
-      {playlist?.title}
+      {playlist?.name}
       <button className="ml-1 group-hover:text-destructive">
         <X className="h-3 w-3" />
       </button>

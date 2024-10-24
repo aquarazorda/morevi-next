@@ -1,39 +1,40 @@
-import * as S from "@effect/schema/Schema";
 import { identity } from "effect";
+import { Schema } from "@effect/schema";
 
-export const wcProductSchema = S.struct({
-  id: S.number,
-  name: S.string,
-  slug: S.string,
-  short_description: S.string,
-  price: S.string,
-  images: S.array(S.struct({ src: S.string })),
-  stock_quantity: S.number,
-  date_created: S.string,
-  categories: S.array(
-    S.struct({
-      name: S.string,
+export const wcProductSchema = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String,
+  slug: Schema.String,
+  short_description: Schema.String,
+  price: Schema.String,
+  images: Schema.Array(Schema.Struct({ src: Schema.String })),
+  stock_quantity: Schema.Number,
+  date_created: Schema.String,
+  categories: Schema.Array(
+    Schema.Struct({
+      name: Schema.String,
     }),
   ),
 });
 
-export const wcProductListSchema = S.array(wcProductSchema);
+export const wcProductListSchema = Schema.Array(wcProductSchema);
 
-export const wcProductResponseSchema = S.struct({
-  data: S.array(
-    wcProductSchema.pipe(
-      S.transform(
-        S.struct({
-          ...wcProductSchema.fields,
-          images: S.array(S.struct({ src: S.string })),
-        }),
-        ({ images, ...rest }) => ({
+export const wcProductResponseSchema = Schema.Struct({
+  data: Schema.Array(
+    Schema.transform(
+      wcProductSchema,
+      Schema.Struct({
+        ...wcProductSchema.fields,
+        images: Schema.Array(Schema.Struct({ src: Schema.String })),
+      }),
+      {
+        encode: ({ images, ...rest }) => ({
           image: images[0]?.src,
           ...rest,
         }),
-        identity,
-        { strict: false },
-      ),
+        decode: identity,
+        strict: false,
+      },
     ),
   ),
 });

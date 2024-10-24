@@ -10,9 +10,9 @@ import {
   wcProductListSchema,
   wcProductResponseSchema,
 } from "../schemas/woocommerce/product";
-import * as S from "@effect/schema/Schema";
 import { Effect, Match, identity, pipe } from "effect";
 import * as ParseResult from "@effect/schema/ParseResult";
+import { Schema } from "@effect/schema";
 
 const wcApi = new WooCommerceRestApi({
   url: env.WP_HOST,
@@ -21,47 +21,49 @@ const wcApi = new WooCommerceRestApi({
   version: "wc/v3",
 });
 
-const categorySchema = S.struct({
-  id: S.number,
-  name: S.string,
-  slug: S.string,
-  count: S.number,
+const categorySchema = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String,
+  slug: Schema.String,
+  count: Schema.Number,
 });
 
-const categoryResponseSchema = S.struct({
-  data: S.array(categorySchema),
-}).pipe(
-  S.transform(
-    S.array(categorySchema),
-    (data) => data.data,
-    (data) => ({ data }),
-  ),
+const categoryResponseSchema = Schema.transform(
+  Schema.Struct({
+    data: Schema.Array(categorySchema),
+  }),
+  Schema.Array(categorySchema),
+  {
+    encode: (data) => ({ data }),
+    decode: ({ data }) => data,
+  },
 );
 
-export type Categories = readonly S.Schema.Type<typeof categorySchema>[];
+export type Categories = readonly Schema.Schema.Type<typeof categorySchema>[];
 
-export const getWcCategories = unstable_cache(
-  () =>
-    pipe(
-      Effect.tryPromise({
-        try: () =>
-          wcApi.get("products/categories", {
-            per_page: 100,
-            orderby: "count",
-            order: "desc",
-          }),
-        catch: (e) => e,
-      }),
-      Effect.flatMap(S.decodeUnknown(categoryResponseSchema)),
-      Effect.either,
-      Effect.runPromise,
-    ),
-  ["getWcCategories"],
-  { tags: [CACHE_TAG.WC_CATEGORIES], revalidate: 600 },
-);
+export const getWcCategories = async () =>
+  unstable_cache(
+    () =>
+      pipe(
+        Effect.tryPromise({
+          try: () =>
+            wcApi.get("products/categories", {
+              per_page: 100,
+              orderby: "count",
+              order: "desc",
+            }),
+          catch: (e) => e,
+        }),
+        Effect.flatMap(Schema.decodeUnknown(categoryResponseSchema)),
+        Effect.either,
+        Effect.runPromise,
+      ),
+    ["getWcCategories"],
+    { tags: [CACHE_TAG.WC_CATEGORIES], revalidate: 600 },
+  )();
 
 const generateTracklist = (
-  tracklist: S.Schema.Type<typeof addReleaseSchema>["tracks"],
+  tracklist: Schema.Schema.Type<typeof addReleaseSchema>["tracks"],
 ) => {
   if (!tracklist) return "";
 
@@ -90,7 +92,7 @@ const generateDescription = ({
   label?: string;
   catno?: string;
   condition?: (typeof recordCondition)[number];
-  tracks?: S.Schema.Type<typeof addReleaseSchema>["tracks"];
+  tracks?: Schema.Schema.Type<typeof addReleaseSchema>["tracks"];
 }) => {
   const conditionText = Match.value(condition).pipe(
     Match.when("Mint (M)", () => "ახალი (M)"),
@@ -110,20 +112,29 @@ const generateDescription = ({
   return res.filter(Boolean).join("\n");
 };
 
-const addPostTransform = addReleaseSchema.pipe(
-  S.transform(
-    S.struct({
-      name: S.string,
-      type: S.literal("simple"),
-      status: S.literal("draft", "publish"),
-      categories: S.array(S.struct({ id: S.number })),
-      regular_price: S.optional(S.string),
-      images: S.array(S.struct({ src: S.string })),
-      short_description: S.string,
-      stock_quantity: S.number,
-      manage_stock: S.literal(true),
-    }),
-    ({ category, image, price, title, status, stock_quantity, ...rest }) => ({
+const addPostTransform = Schema.transform(
+  addReleaseSchema,
+  Schema.Struct({
+    name: Schema.String,
+    type: Schema.Literal("simple"),
+    status: Schema.Literal("draft", "publish"),
+    categories: Schema.Array(Schema.Struct({ id: Schema.Number })),
+    regular_price: Schema.optional(Schema.String),
+    images: Schema.Array(Schema.Struct({ src: Schema.String })),
+    short_description: Schema.String,
+    stock_quantity: Schema.Number,
+    manage_stock: Schema.Literal(true),
+  }),
+  {
+    decode: ({
+      category,
+      image,
+      price,
+      title,
+      status,
+      stock_quantity,
+      ...rest
+    }) => ({
       type: "simple" as const,
       name: title,
       status: status === "draft" ? ("draft" as const) : ("publish" as const),
@@ -134,12 +145,13 @@ const addPostTransform = addReleaseSchema.pipe(
       manage_stock: true,
       short_description: generateDescription(rest),
     }),
-    identity,
-    { strict: false },
-  ),
+    encode: identity,
+    strict: false,
+  },
 );
-export const addProductToWc = (
-  product: S.Schema.Type<typeof addReleaseSchema>,
+
+export const addProductToWc = async (
+  product: Schema.Schema.Type<typeof addReleaseSchema>,
 ) =>
   pipe(
     product,
@@ -160,7 +172,7 @@ export const addProductToWc = (
     Effect.runPromise,
   );
 
-export const getWcProductsFromDate = (date: string) =>
+export const getWcProductsFromDate = async (date: string) =>
   pipe(
     Effect.tryPromise({
       try: () =>
@@ -178,7 +190,7 @@ export const getWcProductsFromDate = (date: string) =>
     Effect.runPromise,
   );
 
-export const getWcProducts = (page: number) =>
+export const getWcProducts = async (page: number) =>
   pipe(
     Effect.tryPromise({
       try: () =>

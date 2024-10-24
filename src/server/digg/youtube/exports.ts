@@ -43,22 +43,22 @@ export const getPlaylistItems = (id: string) =>
     return res;
   }).pipe(Effect.catchAll(() => Effect.fail(new PlaylistEmptyError())));
 
-export const $getUserPlaylists = withYoutubeAuth(
-  Effect.gen(function* () {
-    const channelId = yield* getYoutubeChannelId();
-    const res = yield* Effect.tryPromise(
-      unstable_cache(
-        () => getPlaylists.pipe(Effect.runPromise),
-        ["playlist", channelId],
-        {
-          tags: ["playlist"],
-        },
-      ),
-    );
+// export const $getUserPlaylists = withYoutubeAuth(
+//   Effect.gen(function* () {
+//     const channelId = yield* getYoutubeChannelId();
+//     const res = yield* Effect.tryPromise(
+//       unstable_cache(
+//         () => getPlaylists.pipe(Effect.runPromise),
+//         ["playlist", channelId],
+//         {
+//           tags: ["playlist"],
+//         },
+//       ),
+//     );
 
-    return res;
-  }),
-);
+//     return res;
+//   }),
+// );
 
 export const $getFavoriteYoutubePlaylists = cache((_userId?: string) =>
   Effect.gen(function* () {

@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, useState } from "react";
-import { type PlaylistInfo } from "~/server/digg/youtube/playlist";
+import { type YoutubePlaylistInfo } from "~/server/digg/youtube/playlist";
 
 export const PlaylistsContext = createContext<{
   selectedPlaylists: { id: string; name: string }[];
   initialSelection: { id: string; name: string }[];
-  playlists: PlaylistInfo[];
+  playlists: YoutubePlaylistInfo[];
   togglePlaylist: (playlistId: string) => void;
   clearAll: () => void;
   setSelectedPlaylists: (playlists: { id: string; name: string }[]) => void;
@@ -35,7 +35,7 @@ export const PlaylistsProvider = ({
   children,
 }: {
   selectedPlaylists: { id: string; name: string }[];
-  playlists: PlaylistInfo[];
+  playlists: YoutubePlaylistInfo[];
   children: React.ReactNode;
 }) => {
   const [selected, setSelectedPlaylists] =
@@ -51,7 +51,8 @@ export const PlaylistsProvider = ({
             ...prev,
             {
               id: playlistId,
-              name: playlists.find((p) => p.id === playlistId)?.title ?? "",
+              name:
+                playlists.find((p) => p.externalId === playlistId)?.name ?? "",
             },
           ],
     );

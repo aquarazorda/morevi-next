@@ -1,4 +1,4 @@
-import { getFolders } from "~/server/queries/discogs";
+import { getFolders } from "~/server/queries/discogs-client";
 import { FoldersTable } from "./table";
 
 export default async function FoldersPage() {

@@ -35,50 +35,54 @@ const getPlaylistInfo = (id: string) =>
             itemCount: playlistEncoded.contentDetails?.itemCount,
           });
 
-          const result = yield* Effect.tryPromise(() =>
-            db.insert(youtubePlaylist).values(playlist).returning(),
-          ).pipe(
-            Effect.map((res) => res[0]),
-            Effect.flatMap(Effect.fromNullable),
-          );
+          // const result = yield* Effect.tryPromise(() =>
+          //   db.insert(youtubePlaylist).values(playlist).returning(),
+          // ).pipe(
+          //   Effect.map((res) => res[0]),
+          //   Effect.flatMap(Effect.fromNullable),
+          // );
 
-          return result;
+          return null;
         }),
       ),
     ),
   );
 
-export default effectComponent(({ params }: { params: { id: string } }) =>
-  Effect.gen(function* () {
-    const playlist = yield* getPlaylist(params.id);
-    const stream = yield* getPlaylistItemsStream(playlist.id);
+export default effectComponent(
+  ({ params }: { params: Promise<{ id: string }> }) =>
+    Effect.gen(function* () {
+      const { id } = yield* Effect.tryPromise(() => params);
+      const playlist = yield* getPlaylist(id);
+      const stream = yield* getPlaylistItemsStream(playlist.id);
 
-    return (
-      <div className="container mx-auto p-4 pb-20">
-        <h1 className="mb-6 flex items-center justify-between text-2xl font-bold">
-          Importing playlist - {playlist.title}
-        </h1>
-        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          <GeneratorComponent stream={stream}>
-            {(items) =>
-              items.map((item) => (
-                <PlaylistItem
-                  key={item.id}
-                  thumbnailUrl={item.thumbnailUrl}
-                  title={item.title}
-                />
-              ))
-            }
-          </GeneratorComponent>
+      return (
+        <div className="container mx-auto p-4 pb-20">
+          <h1 className="mb-6 flex items-center justify-between text-2xl font-bold">
+            Importing playlist - {playlist.title}
+          </h1>
+          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <GeneratorComponent stream={stream}>
+              {(items) =>
+                items.map((item) => (
+                  <PlaylistItem
+                    key={item.id}
+                    thumbnailUrl={item.thumbnailUrl}
+                    title={item.title}
+                  />
+                ))
+              }
+            </GeneratorComponent>
+          </div>
         </div>
-      </div>
-    );
-  }).pipe(
-    Effect.catchTag("PlaylistNotFoundError", () =>
-      Effect.gen(function* () {
-        const playlistInfo = yield* getPlaylistInfo(params.id);
-        return <div>Playlist not found {playlistInfo.title}</div>;
-      }),
+      );
+    }).pipe(
+      Effect.catchTag("PlaylistNotFoundError", () =>
+        Effect.gen(function* () {
+          const { id } = yield* Effect.tryPromise(() => params);
+          // const playlistInfo = yield* getPlaylistInfo(id);
+          // return <div>Playlist not found {playlistInfo.title}</div>;
+          return <div>Todo</div>;
+        }),
+      ),
     ),
-  ),
 );

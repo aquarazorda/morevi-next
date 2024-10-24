@@ -38,9 +38,8 @@ export default function DiscogsBreadCrumbs() {
                   <Link
                     href={
                       pathname.split(path)[0] +
-                        path +
-                        (pathParts[i + 1] ? `/#${pathParts[i + 1]}` : "") ??
-                      "/admin"
+                      path +
+                      (pathParts[i + 1] ? `/#${pathParts[i + 1]}` : "")
                     }
                     prefetch={false}
                   >

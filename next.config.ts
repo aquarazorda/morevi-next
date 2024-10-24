@@ -11,8 +11,8 @@ const nextConfig: NextConfig = {
     appIsrStatus: false,
   },
   experimental: {
-    ppr: true,
-    dynamicIO: true,
+    // ppr: true,
+    // dynamicIO: true,
     reactCompiler: true,
     serverActions: {
       bodySizeLimit: "5mb",

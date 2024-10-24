@@ -54,7 +54,6 @@ export default function WoltGenerateSearchForm() {
                 `/admin/wolt/generate/${format(startOfDay(date), "yyyy-MM-dd'T'HH:mm:ss'Z'")}`,
               );
             }}
-            initialFocus
           />
         </PopoverContent>
       </Popover>

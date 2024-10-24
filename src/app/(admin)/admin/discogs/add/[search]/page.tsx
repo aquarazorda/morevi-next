@@ -1,13 +1,14 @@
 import { Match } from "effect";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { getDiscogsSearch } from "~/server/queries/discogs";
+import { getDiscogsSearch } from "~/server/queries/discogs-client";
 
 export default async function AddNewRecordSearchPage({
-  params: { search },
+  params,
 }: {
-  params: { search: string };
+  params: Promise<{ search: string }>;
 }) {
+  const { search } = await params;
   const searchResults = await getDiscogsSearch(search);
 
   return (
@@ -34,7 +35,7 @@ export default async function AddNewRecordSearchPage({
                     />
                     <CardTitle>{title}</CardTitle>
                   </CardHeader>
-                  <CardContent className="flex flex-col  space-y-2">
+                  <CardContent className="flex flex-col space-y-2">
                     <span className="line-clamp-2">{label?.join(", ")}</span>
                     <span>{year}</span>
                   </CardContent>

@@ -3,10 +3,11 @@ import WoltGenerateProductTable from "./table";
 import { Either, pipe } from "effect";
 
 export default async function WoltGenerateListPage({
-  params: { date },
+  params,
 }: {
-  params: { date: string };
+  params: Promise<{ date: string }>;
 }) {
+  const { date } = await params;
   const data = await getWcProductsFromDate(decodeURIComponent(date));
 
   return pipe(

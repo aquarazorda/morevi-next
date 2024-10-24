@@ -23,7 +23,7 @@ const getHashedPassword = flow(
   ),
 );
 
-export const $signup = (formData: FormData) =>
+export const $signup = async (formData: FormData) =>
   pipe(
     testUsername(formData.get("username") as string),
     Effect.bindTo("username"),

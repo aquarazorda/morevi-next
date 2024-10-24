@@ -43,7 +43,7 @@ const login_ = (_: any, formData: FormData) =>
     Effect.flatMap(({ existingUser }) => createSession(existingUser.id)),
   );
 
-export const login = (_: any, formData: FormData) =>
+export const login = async (_: any, formData: FormData) =>
   pipe(
     login_(_, formData),
     Effect.catchAll(() => Effect.succeed(null)),

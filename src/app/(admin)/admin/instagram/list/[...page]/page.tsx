@@ -7,14 +7,15 @@ import { isLeft } from "effect/Either";
 export default async function InstagramListPage({
   params,
 }: {
-  params: { page?: string[] };
+  params: Promise<{ page?: string[] }>;
 }) {
-  const page = params.page?.[0] ? Number(params.page[0]) : 1;
-  const data = await getWcProducts(page);
+  const { page } = await params;
+  const pageNumber = page?.[0] ? Number(page[0]) : 1;
+  const data = await getWcProducts(pageNumber);
 
   return (
     <InstagramListTable
-      page={page}
+      page={pageNumber}
       data={isLeft(data) ? { data: [] } : data.right}
     />
   );

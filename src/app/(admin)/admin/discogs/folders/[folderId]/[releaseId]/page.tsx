@@ -1,4 +1,4 @@
-import { getRelease } from "~/server/queries/discogs";
+import { getRelease } from "~/server/queries/discogs-client";
 import AddReleaseForm from "./form";
 import { redirect } from "next/navigation";
 import { getWcCategories } from "~/server/queries/woocommerce";
@@ -7,14 +7,14 @@ import { isLeft } from "effect/Either";
 export default async function FolderReleasePage({
   params,
 }: {
-  params: { folderId?: string; releaseId: string };
+  params: Promise<{ folderId?: string; releaseId: string }>;
 }) {
-  const data = await getRelease(params.releaseId);
+  const { releaseId, folderId } = await params;
+  const data = await getRelease(releaseId);
+
   if (!data || isLeft(data))
     redirect(
-      params.folderId
-        ? "/admin/discogs/folders/" + params.folderId
-        : "/admin/discogs/add",
+      folderId ? "/admin/discogs/folders/" + folderId : "/admin/discogs/add",
     );
   const categoriesPromise = getWcCategories();
 

@@ -17,9 +17,10 @@ import { TrackRow } from "~/app/(digger)/digger/track-row";
 // import { EditableTitle } from './editable-title';
 
 export default effectComponent(
-  ({ params }: { params: { id: string; type: PlaylistType } }) =>
+  ({ params }: { params: Promise<{ id: string; type: PlaylistType }> }) =>
     Effect.gen(function* () {
-      const items = yield* getPlaylistItemsStream(params.id);
+      const { id, type } = yield* Effect.tryPromise(() => params);
+      const items = yield* getPlaylistItemsStream(id);
 
       return (
         <div className="flex flex-1 flex-col overflow-hidden bg-[#0A0A0A] pb-[69px]">
@@ -59,7 +60,7 @@ export default effectComponent(
           </div>
 
           <ScrollArea className="mt-3 flex-1">
-            <div className="min-w-max" suppressHydrationWarning>
+            {/* <div className="min-w-max" suppressHydrationWarning>
               <TrackTable>
                 <GeneratorComponent stream={items}>
                   {(playlistItems) => (
@@ -78,7 +79,7 @@ export default effectComponent(
                   )}
                 </GeneratorComponent>
               </TrackTable>
-            </div>
+            </div> */}
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </div>

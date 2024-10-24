@@ -6,7 +6,7 @@ import { Button } from "~/components/ui/button";
 export default function effectComponent<P, A, E>(
   fn: (props: P) => Effect.Effect<A, E>,
 ) {
-  return (props?: P) =>
+  return (props: P) =>
     Effect.runPromise(
       fn(props ?? ({} as P)).pipe(Effect.tapError(Effect.logError)),
     ).catch((cause: { message?: string; url?: string; _tag?: string }) => {
