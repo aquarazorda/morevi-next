@@ -98,18 +98,14 @@ export default function AddReleaseForm({
 
   const onSubmit = (data: Schema.Type<typeof addReleaseSchema>) => {
     startTransition(async () => {
-      pipe(
-        await addProductToWc(data),
-        Either.match({
-          onLeft: toast.error,
-          onRight: (m: string) => {
-            toast.success(m);
-            router.push(
-              pathname.split("/").slice(0, -1).join("/") + "#" + data.id,
-            );
-          },
-        }),
-      );
+      const res = await addProductToWc(data);
+
+      if (res._tag === "success") {
+        toast.success(res.value);
+        router.push(pathname.split("/").slice(0, -1).join("/") + "#" + data.id);
+      } else {
+        toast.error(res.message);
+      }
     });
   };
 

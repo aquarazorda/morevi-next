@@ -22,14 +22,19 @@ export const releasesTableColumns: ColumnDef<Data>[] = [
   {
     header: "Thumbnail",
     accessorKey: "thumb",
-    cell: ({ row }) => (
-      <img
-        className="size-20"
-        src={row.original.thumb}
-        alt="Release Image"
-        id={String(row.original.id)}
-      />
-    ),
+    cell: ({ row }) =>
+      row.original.thumb ? (
+        <img
+          className="size-20"
+          src={row.original.thumb}
+          alt="Release Image"
+          id={String(row.original.id)}
+        />
+      ) : (
+        <div className="bg-grey-200 size-20 items-center justify-center">
+          No image found
+        </div>
+      ),
   },
   {
     header: "Title",

@@ -13,6 +13,7 @@ import {
 import { Effect, Match, identity, pipe } from "effect";
 import * as ParseResult from "@effect/schema/ParseResult";
 import { Schema } from "@effect/schema";
+import { effectToPromise } from "~/server/queries/utils";
 
 const wcApi = new WooCommerceRestApi({
   url: env.WP_HOST,
@@ -168,8 +169,7 @@ export const addProductToWc = async (
         catch: () => "Error adding product to WooCommerce. Please try again.",
       }),
     ),
-    Effect.either,
-    Effect.runPromise,
+    effectToPromise,
   );
 
 export const getWcProductsFromDate = async (date: string) =>
@@ -186,8 +186,7 @@ export const getWcProductsFromDate = async (date: string) =>
     }),
     ParseResult.decodeUnknown(wcProductListSchema),
     ParseResult.mapError(() => "Error parsing products from WooCommerce."),
-    Effect.either,
-    Effect.runPromise,
+    effectToPromise,
   );
 
 export const getWcProducts = async (page: number) =>
