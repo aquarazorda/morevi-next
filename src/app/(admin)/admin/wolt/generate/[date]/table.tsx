@@ -49,7 +49,7 @@ const columns: ColumnDef<Schema.Type<typeof wcProductSchema>>[] = [
 export default function WoltGenerateProductTable({
   data,
 }: {
-  data: Schema.Type<typeof wcProductSchema>[];
+  data: readonly Schema.Type<typeof wcProductSchema>[];
 }) {
-  return <DataTable columns={columns} data={data} />;
+  return <DataTable columns={columns} data={[...data]} />;
 }

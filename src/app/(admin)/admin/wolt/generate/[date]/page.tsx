@@ -10,12 +10,9 @@ export default async function WoltGenerateListPage({
   const { date } = await params;
   const data = await getWcProductsFromDate(decodeURIComponent(date));
 
-  return pipe(
-    data,
-    Either.match({
-      onLeft: (e) => <div>{e}</div>,
-      // @ts-expect-error fix it later
-      onRight: (d) => <WoltGenerateProductTable data={d} />,
-    }),
-  );
+  if (data._tag === "error") {
+    return <div>{data.message}</div>;
+  }
+
+  return <WoltGenerateProductTable data={data.value} />;
 }
