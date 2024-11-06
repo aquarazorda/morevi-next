@@ -16,7 +16,7 @@ export const PlaylistInfoSchema = Schema.Struct({
 
 export type YoutubePlaylistInfo = Schema.Schema.Type<typeof PlaylistInfoSchema>;
 
-const fetchUserPlaylists = (pageToken?: string) =>
+export const fetchUserPlaylists = (pageToken?: string) =>
   Effect.gen(function* () {
     const response = yield* Effect.tryPromise(() =>
       youtube.playlists.list({
@@ -38,6 +38,7 @@ const fetchUserPlaylists = (pageToken?: string) =>
         type: "youtube",
       } satisfies YoutubePlaylistInfo),
     );
+
     return {
       nextPageToken: response.data.nextPageToken ?? undefined,
       playlists,

@@ -50,7 +50,7 @@ const fetchPlaylistItems = (playlistId: string, pageToken?: string) =>
 //   );
 
 // Stream to fetch and insert playlist items
-const fetchAndInsertPlaylistItems = (playlistId: string) =>
+export const fetchAndInsertPlaylistItems = (playlistId: string) =>
   Stream.paginateEffect(undefined as string | undefined, (pageToken) =>
     Effect.gen(function* () {
       const response = yield* fetchPlaylistItems(playlistId, pageToken);
