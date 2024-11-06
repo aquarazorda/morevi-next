@@ -7,13 +7,10 @@ const nextConfig: NextConfig = {
     config.externals.push("@node-rs/argon2", "@node-rs/bcrypt");
     return config;
   },
-  devIndicators: {
-    appIsrStatus: false,
-  },
   experimental: {
     // ppr: true,
     // dynamicIO: true,
-    // reactCompiler: true,
+    reactCompiler: true,
     serverActions: {
       bodySizeLimit: "5mb",
     },

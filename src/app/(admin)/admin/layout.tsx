@@ -1,11 +1,11 @@
-"use server";
-
 import { isLeft } from "effect/Either";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { Sidebar } from "~/components/admin/sidebar";
 import { Toaster } from "~/components/ui/sonner";
 import { validateRequestClient } from "~/server/auth/utils";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({
   children,
