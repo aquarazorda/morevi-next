@@ -19,20 +19,20 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDuration(durationInSeconds: number) {
   if (isNaN(durationInSeconds) || durationInSeconds < 0) {
-    return '0:00';
+    return "0:00";
   }
 
   const minutes = Math.floor(durationInSeconds / 60);
   const seconds = Math.floor(durationInSeconds % 60);
 
-  const formattedSeconds = seconds.toString().padStart(2, '0');
+  const formattedSeconds = seconds.toString().padStart(2, "0");
 
   return `${minutes}:${formattedSeconds}`;
 }
 
 export function highlightText(text: string, query: string | undefined) {
   if (!query) return text;
-  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  const parts = text.split(new RegExp(`(${query})`, "gi"));
 
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
@@ -41,7 +41,7 @@ export function highlightText(text: string, query: string | undefined) {
       </mark>
     ) : (
       part
-    )
+    ),
   );
 }
 
@@ -97,7 +97,7 @@ export const getNotesAsSearchParams = (
 
   notes.forEach((note) => {
     Match.value(note.field_id).pipe(
-      Match.when(1, () => () => search.append("condition", note.value)),
+      Match.when(1, () => search.append("condition", note.value)),
       Match.when(3, () => {
         const { price, quantity } = parsePriceAndQuantity(note.value);
         if (price) search.append("price", String(price - 0.01));

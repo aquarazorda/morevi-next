@@ -32,8 +32,6 @@ const getPlaylists = Effect.gen(function* () {
     nextPageToken = newNextPageToken;
   } while (nextPageToken);
 
-  yield* Effect.log(playlists);
-
   return playlists;
 });
 
@@ -48,7 +46,7 @@ const fetchAndWritePlaylistItems = (name: string, playlistId: string) =>
         .replace(/[^a-zA-Z0-9\s]/g, "")
         .toLowerCase()
         .trim();
-      return `${index + 1}. ${cleanedTitle}\n`;
+      return `${cleanedTitle}\n`;
     };
 
     let index = 0;
