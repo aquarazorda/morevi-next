@@ -1,4 +1,4 @@
-import { Effect, pipe } from "effect";
+import { Context, Effect, pipe } from "effect";
 import slsk from "slsk-client";
 import { env } from "~/env";
 
@@ -9,9 +9,10 @@ const slskConfig = {
 };
 
 // Create a Soulseek client
-const createSlskClient: Effect.Effect<slsk.SlskClient, Error> =
+export const createSlskClient: Effect.Effect<slsk.SlskClient, Error> =
   Effect.asyncEffect((resume) => {
     slsk.connect(slskConfig, (err, client) => {
+      console.log(client);
       if (err) {
         resume(Effect.fail(err));
       } else {
@@ -22,21 +23,27 @@ const createSlskClient: Effect.Effect<slsk.SlskClient, Error> =
     return Effect.void;
   });
 
+export class SlskClient extends Context.Tag("SoulseekClient")<
+  SlskClient,
+  Effect.Effect<slsk.SlskClient, Error>
+>() {}
+
 // Search Soulseek function
-const searchSoulseek = (query: string) =>
-  Effect.gen(function* (_) {
-    const client = yield* _(createSlskClient);
-    const results = yield* _(
-      Effect.promise(
-        () =>
-          new Promise<slsk.SearchResult[]>((resolve, reject) => {
-            client.search({ req: query, timeout: 5000 }, (err, res) => {
-              if (err) reject(err);
-              else resolve(res);
-            });
-          }),
-      ),
+export const searchSoulseek = (query: string) =>
+  Effect.gen(function* () {
+    const slskClient = yield* SlskClient;
+    const client = yield* slskClient;
+
+    const results = yield* Effect.tryPromise(
+      () =>
+        new Promise<slsk.SearchResult[]>((resolve, reject) => {
+          client.search({ req: query, timeout: 5000 }, (err, res) => {
+            if (err) reject(err);
+            else resolve(res);
+          });
+        }),
     );
+
     return results;
   });
 
