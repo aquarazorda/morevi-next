@@ -190,30 +190,31 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, [togglePlayPause]);
 
-  return (
-    <PlaybackContext.Provider
-      value={{
-        isPlaying,
-        currentTrack,
-        currentTime,
-        duration,
-        togglePlayPause,
-        playTrack,
-        playNextTrack,
-        playPreviousTrack,
-        setCurrentTime,
-        setDuration,
-        setPlaylist,
-        audioRef,
-        activePanel,
-        setActivePanel,
-        registerPanelRef,
-        handleKeyNavigation,
-      }}
-    >
-      {children}
-    </PlaybackContext.Provider>
-  );
+  return <div>TODO</div>
+  // return (
+  //   <PlaybackContext.Provider
+  //     value={{
+  //       isPlaying,
+  //       currentTrack,
+  //       currentTime,
+  //       duration,
+  //       togglePlayPause,
+  //       playTrack,
+  //       playNextTrack,
+  //       playPreviousTrack,
+  //       setCurrentTime,
+  //       setDuration,
+  //       setPlaylist,
+  //       audioRef,
+  //       activePanel,
+  //       setActivePanel,
+  //       registerPanelRef,
+  //       handleKeyNavigation,
+  //     }}
+  //   >
+  //     {children}
+  //   </PlaybackContext.Provider>
+  // );
 }
 
 export function usePlayback() {

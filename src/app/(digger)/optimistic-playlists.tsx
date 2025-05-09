@@ -101,9 +101,9 @@ export function OptimisticPlaylists() {
   const { registerPanelRef, handleKeyNavigation, setActivePanel } =
     usePlayback();
 
-  useEffect(() => {
-    registerPanelRef("sidebar", playlistsContainerRef);
-  }, [registerPanelRef]);
+  // useEffect(() => {
+  //   registerPanelRef("sidebar", playlistsContainerRef);
+  // }, [registerPanelRef]);
 
   async function addPlaylistAction() {
     const newPlaylist = {
