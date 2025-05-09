@@ -25,6 +25,7 @@ import {
 import { cn } from "~/lib/utils";
 import { Input } from "./input";
 import { Button } from "./button";
+import Link from "next/link";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -34,6 +35,7 @@ interface DataTableProps<TData, TValue> {
   manualPagination?: boolean;
   pageCount?: number;
   rowCount?: number;
+  url?: (row: TData) => string;
   onPaginationChange?: OnChangeFn<PaginationState>;
 }
 
@@ -57,6 +59,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   onRowClick,
+  url,
   ...pagination
 }: DataTableProps<TData, TValue>) {
   const [globalFilter, setGlobalFilter] = useState("");
@@ -144,14 +147,30 @@ export function DataTable<TData, TValue>({
                   className={cn(onRowClick && "cursor-pointer")}
                   onClick={() => onRowClick?.(row.original as TData)}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
+                  {url
+                    ? row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          <Link
+                            href={url(row.original as TData)}
+                            className="w-full"
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </Link>
+                        </TableCell>
+                      ))
+                    : row
+                        .getVisibleCells()
+                        .map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </TableCell>
+                        ))}
                 </TableRow>
               ))
             ) : (

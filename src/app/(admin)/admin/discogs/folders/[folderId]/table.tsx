@@ -68,9 +68,12 @@ export const ReleasesTable = ({ data }: { data: readonly Data[] }) => {
     <DataTable
       data={data as Data[]}
       columns={releasesTableColumns}
-      onRowClick={({ id, notes }) =>
-        router.push(pathname + "/" + id + getNotesAsSearchParams(notes))
+      url={({ id, notes }) =>
+        pathname + "/" + id + getNotesAsSearchParams(notes)
       }
+      // onRowClick={({ id, notes }) =>
+      //   router.push(pathname + "/" + id + getNotesAsSearchParams(notes))
+      // }
     />
   );
 };
