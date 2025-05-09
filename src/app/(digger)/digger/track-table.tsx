@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
-import { type PlaylistWithSongs, type Song } from "~/server/db/types";
+import { useRef, useEffect, useState, type RefObject } from "react";
 import { usePlayback } from "~/app/(digger)/playback-context";
 
 export function TrackTable({
@@ -13,12 +12,14 @@ export function TrackTable({
   query?: string;
   children: React.ReactNode;
 }) {
-  const tableRef = useRef<HTMLTableElement>(null);
+  const tableRef = useRef<HTMLElement>(null);
   const { registerPanelRef, setActivePanel, setPlaylist } = usePlayback();
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
 
   useEffect(() => {
-    registerPanelRef("tracklist", tableRef);
+    if (tableRef.current) {
+      registerPanelRef("tracklist", tableRef as RefObject<HTMLElement>);
+    }
   }, [registerPanelRef]);
 
   // useEffect(() => {
@@ -27,6 +28,7 @@ export function TrackTable({
 
   return (
     <table
+      // @ts-expect-error
       ref={tableRef}
       className="w-full text-xs"
       onClick={() => setActivePanel("tracklist")}
